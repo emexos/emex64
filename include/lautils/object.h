@@ -75,6 +75,11 @@
 #define LAO_SECTION_MAP_ALIGN    0x3 /* maps alligned next to the last mapped page */
 #define LAO_SECTION_MAP_DEFAULT  LAO_SECTION_MAP_ALIGN
 
+/**** SYMBOL MACROS ****/
+
+#define LAO_SYMBOL_TYPE_DEFAULT 0x0         /* normal ass code symbol */
+#define LAO_SYMBOL_TYPE_BSS     0x1         /* references to a BSS section */
+
 /**** RELOCATION MACROS ****/
 
 #define LAO_RELOC_TYPE_ABSOLUTE 0x0         /* absoloute offset in image */
@@ -95,25 +100,32 @@ typedef uint32_t idx32_t;
 /* MARK: symbol table */
 
 typedef struct __attribute__((packed)) lao_symbol_entry {
+    uint8_t type;
     idx32_t name_index;
     off64_t symbol_offset;
+    idx32_t section_index;
+    off32_t symbol_size; /* matters only for BSS, BSS is fairly dynamic, the map type can only change how BSS regions are mapped in the first place */
+    uint8_t  _pad[3]; 
 } lao_symbol_entry_t;
 
 typedef struct __attribute__((packed)) lao_symbol_table {
     idx32_t count;
+    uint8_t  _pad[4];
     /* symbol entrie's start right after */
 } lao_symbol_table_t;
 
 /* MARK: reloc table */
 
 typedef struct __attribute__((packed)) lao_reloc_table_entry {
-    idx32_t symbol_index;   /* depends on type, either a index in symbol table or a index in string table */
+    idx32_t symbol_index;
     off64_t placeholder_offset;
     uint8_t type;
+    uint8_t  _pad[3];
 } lao_reloc_table_entry_t;
 
 typedef struct __attribute__((packed)) lao_reloc_table {
     idx32_t count;
+    uint8_t  _pad[4];
     /* reloc entrie's start right after */
 } lao_reloc_table_t;
 
@@ -123,6 +135,7 @@ typedef struct __attribute__((packed)) lao_section_table_entry {
     uint8_t type;
     uint8_t prot;
     uint8_t map;
+    uint8_t  _pad0[5];
     off64_t vaddr;  /* if fixed the page will load at that specific location */
     off64_t start;
     off64_t size;
@@ -130,6 +143,7 @@ typedef struct __attribute__((packed)) lao_section_table_entry {
 
 typedef struct __attribute__((packed)) lao_section_table {
     idx32_t count;
+    uint8_t  _pad[4];
     /* section entrie's start right after */
 } lao_section_table_t;
 
@@ -150,7 +164,19 @@ typedef struct __attribute__((packed)) lao_header64 {
     off64_t reloc_table_offset;
     off64_t start_offset;          /* in executables that is the CPU's "I jump there" offset */
     idx32_t string_table_pages_count;
+    uint8_t  _pad[4];
     /* string table pages start right after and after string table the other tables and data */
 } lao_header64_t;
+
+/**** NONO Assertions ****/
+
+_Static_assert(sizeof(lao_symbol_entry_t) == 24, "lao_symbol_entry size");
+_Static_assert(sizeof(lao_symbol_table_t) == 8,  "lao_symbol_table size");
+_Static_assert(sizeof(lao_reloc_table_entry_t) == 16, "lao_reloc_table_entry size");
+_Static_assert(sizeof(lao_reloc_table_t) == 8,  "lao_reloc_table size");
+_Static_assert(sizeof(lao_section_table_entry_t) == 32, "lao_section_table_entry size");
+_Static_assert(sizeof(lao_section_table_t) == 8,  "lao_section_table size");
+_Static_assert(sizeof(lao_base_header_t) == 8,  "lao_base_header size");
+_Static_assert(sizeof(lao_header64_t) == 40, "lao_header64 size");
 
 #endif /* LAUTILS_OBJECT_H */
