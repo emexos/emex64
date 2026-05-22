@@ -29,6 +29,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+bool warning_error = false;
+
 static inline int putchar_c(char c)
 {
     return write(1, &c, 1);
@@ -241,31 +243,52 @@ void diag_note(compiler_token_t *ct,
     va_end(args);
 }
 
-void diag_warn(compiler_token_t *ct,
-               const char *msg,
-               ...)
+typedef enum {
+    DIAG_WARN,
+    DIAG_ERROR
+} diag_level_t;
+
+static void diag_vemit(diag_level_t level,
+                       compiler_token_t *ct,
+                       const char *msg,
+                       va_list args)
 {
-    /* handling compiler token if passed */
+    if(warning_error)
+    {
+        level = DIAG_ERROR;
+    }
+
     if(ct != NULL)
     {
         printf("%s:%zu:%zu: ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
     }
 
-    /* initial debug print */
-    printf("\x1b[1m\033[33mwarning:\033[0m\x1b[0m ");
+    switch(level)
+    {
+        case DIAG_WARN:
+            printf("\x1b[1m\033[33mwarning:\033[0m\x1b[0m ");
+            break;
+        case DIAG_ERROR:
+            printf("\x1b[1m\033[31merror:\033[0m\x1b[0m ");
+            break;
+    }
 
-    /* starting to parse arguments */
-    va_list args;
-    int i = 0;
-    int count = 0;
-
-    /* starting to parse */
-    va_start(args, msg);
-
-    /* invoking helper */
     diag_helper(msg, &args);
 
-    /* ending the parse */
+    if(level == DIAG_ERROR)
+    {
+        exit(1);
+    }
+}
+
+void diag_warn(compiler_token_t *ct,
+               const char *msg,
+               ...)
+{
+    va_list args;
+
+    va_start(args, msg);
+    diag_vemit(DIAG_WARN, ct, msg, args);
     va_end(args);
 }
 
@@ -273,29 +296,9 @@ void diag_error(compiler_token_t *ct,
                 const char *msg,
                 ...)
 {
-    /* handling compiler token if passed */
-    if(ct != NULL)
-    {
-        printf("%s:%zu:%zu: ", ct->cl->ci->file[ct->cl->file_idx].path, ct->cl->line_num, ct->column_num);
-    }
-
-    /* initial debug print */
-    printf("\x1b[1m\033[31merror:\033[0m\x1b[0m ");
-
-    /* starting to parse arguments */
     va_list args;
-    int i = 0;
-    int count = 0;
 
-    /* starting to parse */
     va_start(args, msg);
-
-    /* invoking helper */
-    diag_helper(msg, &args);
-
-    /* ending the parse */
+    diag_vemit(DIAG_ERROR, ct, msg, args);
     va_end(args);
-
-    /* a error is a no go */
-    exit(1);
 }

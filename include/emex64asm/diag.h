@@ -27,6 +27,8 @@
 
 #include <emex64asm/type.h>
 
+extern bool warning_error;
+
 void diag_note(compiler_token_t *ct, const char *msg, ...);
 void diag_warn(compiler_token_t *ct, const char *msg, ...);
 void diag_error(compiler_token_t *ct, const char *msg, ...);

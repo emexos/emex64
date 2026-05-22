@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     /* invocation settings */
     const char *start_entry_name = "_start";
     bool page_align = true;
-    bool warning_error = false;
     bool warning_deprecated = true;
 
     /* parse arguments */
