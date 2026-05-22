@@ -1,7 +1,7 @@
-# LightweightArchitecture64
+# emex64
 
 ## Introduction
-LA64 is a 64bit lightweight architecture. It's a mix out of RISC and CISC it is based on no previous architecture, its only inspired by previous architectures like aarch64.
+emex64 is a 64bit lightweight architecture. It's a mix out of RISC and CISC it is based on no previous architecture, its only inspired by previous architectures like aarch64.
 
 ## Instruction Set
 #### Core
