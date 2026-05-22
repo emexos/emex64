@@ -226,10 +226,4 @@ void code_tokengen(compiler_invocation_t *ci,
             ci->line[i].type = COMPILER_LINE_TYPE_ASM;
         }
     }
-
-    /* parsing completed and due to that we can straight up unmap the files */
-    for(int i = 0; i < ci->file_cnt; i++)
-    {
-        munmap(ci->file[i].code, ci->file[i].len);
-    }
 }

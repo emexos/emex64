@@ -40,7 +40,7 @@
 _timer_handler:
     iret
 
-_main:
+_badmain:
     bl _interrupt_register_handler, IRQ_TIMER, _timer_handler
 
     ldq r0, TIMER_FREQ
@@ -77,8 +77,8 @@ _main:
 .end:
     ret
 
-_start:
+_badstart:
     bl _pmm_init
     bl _interrupt_init
-    bl _main
+    bl _badmain
     stb PLATFORM_PWR, 0
