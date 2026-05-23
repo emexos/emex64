@@ -86,13 +86,13 @@ void code_token_section(compiler_invocation_t *ci)
                         parser_return_t pr = parse_value_from_string(ci->line[i].token[a].str);
 
                         /* checking type */
-                        if(pr.type == laParserValueTypeBuffer)
+                        if(pr.type == emexParserValueTypeBuffer)
                         {
                             /* its a buffer so we copy the buffer into section */
                             char *buffer = (char*)pr.value;
                             fdwalker_write_buf(ci->fdwalker, buffer, pr.len);
                         }
-                        else if(pr.type == laParserValueTypeString)
+                        else if(pr.type == emexParserValueTypeString)
                         {
                             if(dbs != 64)
                             {
@@ -189,7 +189,7 @@ void code_token_section(compiler_invocation_t *ci)
 
                     /* checking if the type makes sense */
                     /* imagine you read that comment and you realise that you had the same idea before */
-                    if(pr.type != laParserValueTypeDecimal)
+                    if(pr.type != emexParserValueTypeNumber)
                     {
                         diag_error(&(ci->line[i].token[2]), "invalid size for .bss section entry \"%s\"\n", ci->line[i].token[2].str);
                     }

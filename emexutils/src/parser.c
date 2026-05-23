@@ -243,27 +243,18 @@ inline static parser_value_type_t parse_type(const char *line,
                                              uint64_t *fastdec,
                                              uint64_t *len)
 {
-    if(parse_type_is_hex(line, fastdec))
+    if(parse_type_is_hex(line, fastdec) ||
+       parse_type_is_bin(line, fastdec) ||
+       parse_type_is_dec(line, fastdec) ||
+       parse_type_is_char(line, fastdec))
     {
-        return laParserValueTypeHexadecimal;
-    }
-    else if(parse_type_is_bin(line, fastdec))
-    {
-        return laParserValueTypeBinary;
-    }
-    else if(parse_type_is_dec(line, fastdec))
-    {
-        return laParserValueTypeDecimal;
-    }
-    else if(parse_type_is_char(line, fastdec))
-    {
-        return laParserValueTypeCharacter;
+        return emexParserValueTypeNumber;
     }
     else if(parse_type_is_buffer(line, fastdec, len))
     {
-        return laParserValueTypeBuffer;
+        return emexParserValueTypeBuffer;
     }
-    return laParserValueTypeString;
+    return emexParserValueTypeString;
 }
 
 parser_return_t parse_value_from_string(const char *s)

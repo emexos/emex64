@@ -258,7 +258,7 @@ bool la64_compiler_emit_instr_default(const opcode_entry_t *opce,
         /* parsing value */
         parser_return_t pr = parse_value_from_string(cl->token[i].str);
 
-        if(pr.type == laParserValueTypeString)
+        if(pr.type == emexParserValueTypeString)
         {
             /* its a label */
             /* set mode to 64bit, because a label is 64bit wide */

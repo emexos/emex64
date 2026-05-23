@@ -27,13 +27,10 @@
 
 #include <stdint.h>
 
-typedef enum laParserTypeValue {
-    laParserValueTypeString         = 0x0,
-    laParserValueTypeDecimal        = 0x1,
-    laParserValueTypeHexadecimal    = 0x2,
-    laParserValueTypeBinary         = 0x3,
-    laParserValueTypeCharacter      = 0x4,
-    laParserValueTypeBuffer         = 0x5
+typedef enum emexParserTypeValue {
+    emexParserValueTypeString         = 0x0,
+    emexParserValueTypeNumber         = 0x2,
+    emexParserValueTypeBuffer         = 0x3
 } parser_value_type_t;
 
 typedef struct parsed_type_return {
