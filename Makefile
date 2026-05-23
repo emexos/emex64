@@ -3,20 +3,22 @@
 all: compile
 
 # Prepares the build directory
-build:
+build/.build:
 	mkdir build
 	cd build; \
-		cmake ..
+		cmake .. -G Ninja
+	touch build/.build
 
 # Builds the targets
-compile: build
+compile: build/.build
 	cd build; \
-		make
+		ninja
 
 # And install
 install: compile
 	cd build; \
-		sudo make install
+		sudo ninja install
 
 clean:
 	rm -rf build
+	rm -rf build/.build
