@@ -38,14 +38,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-/* opcode emit */
 void la64_compiler_emit_opcode(fdwalker_t *fw,
                                uint8_t op)
 {
     fdwalker_write(fw, op, 8);
 }
 
-/* register emit */
 void la64_compiler_emit_reg(fdwalker_t *fw,
                             uint8_t reg)
 {
@@ -55,7 +53,6 @@ void la64_compiler_emit_reg(fdwalker_t *fw,
     fdwalker_write(fw, reg, 5);
 }
 
-/* intermediate emit */
 void la64_compiler_emit_imm8(fdwalker_t *fw,
                              uint8_t imm)
 {
@@ -105,13 +102,11 @@ void la64_compiler_emit_imm(fdwalker_t *fw,
     }
 }
 
-/* end emitter */
 void la64_compiler_emit_end(fdwalker_t *fw)
 {
     fdwalker_write(fw, LA64_PARAMETER_CODING_INSTR_END, 3);
 }
 
-/* instruction emitter */
 bool la64_compiler_emit_instr_inc(opcode_entry_t *opce,
                                   compiler_line_t *cl)
 {
@@ -132,7 +127,6 @@ bool la64_compiler_emit_instr_inc(opcode_entry_t *opce,
 
         /* it must be a register */
         register_entry_t *reg = register_from_string(cl->token[i].str);
-
         if(reg == NULL)
         {
             diag_error(&(cl->token[i]), "expected register, got intermediate or label \"%s\"\n", cl->token[i].str);
@@ -161,7 +155,6 @@ bool la64_compiler_emit_instr_dec(opcode_entry_t *opce,
      * 1 byte more for the end marker, plus.. nobody
      * actually used the multiargument feature of it.
      */
-    
     for(uint64_t i = 1; i < cl->token_cnt; i++)
     {
         /* increment means each parameter, one opcode */
@@ -203,7 +196,6 @@ bool la64_compiler_emit_instr_clr(opcode_entry_t *opce,
      * XOR REG, REG, END
      *
      */
-    
     for(uint64_t i = 1; i < cl->token_cnt; i++)
     {
         /* increment means each parameter, one opcode */
@@ -321,7 +313,6 @@ bool la64_compiler_emit_instr_default(const opcode_entry_t *opce,
     return true;
 }
 
-/* automised code emitting */
 bool la64_compiler_emit(compiler_line_t *cl)
 {
     /* parameter count check */
@@ -338,7 +329,6 @@ bool la64_compiler_emit(compiler_line_t *cl)
 
     /* getting opcode entry if it exists */
     const opcode_entry_t *opce = opcode_from_string(cl->token[0].str);
-
     if(opce == NULL)
     {
         diag_error(&(cl->token[0]), "illegal opcode \"%s\"\n", cl->token[0].str);
@@ -346,12 +336,9 @@ bool la64_compiler_emit(compiler_line_t *cl)
     }
 
     /* checking for deprecation */
-    if(opce->dnstr != NULL)
+    if(opce->dnstr != NULL && cl->ci->warning_deprecated)
     {
-        if(cl->ci->warning_deprecated)
-        {
-            diag_warn(&(cl->token[cl->token_cnt - 1]), "opcode \"%s\" is deprecated: %s\n", opce->name, opce->dnstr);
-        }
+        diag_warn(&(cl->token[cl->token_cnt - 1]), "opcode \"%s\" is deprecated: %s\n", opce->name, opce->dnstr);
     }
 
     /* checking argument count */
