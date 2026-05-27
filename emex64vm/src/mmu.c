@@ -32,9 +32,9 @@ typedef struct la64_mmu_entry_lookup {
     uint64_t pte;
 } la64_mmu_entry_lookup_t;
 
-static la64_mmu_entry_lookup_t la64_mmu_lookup_pte(la64_core_t *core,
-                                                   uint64_t pt_addr,
-                                                   uint16_t idx)
+static inline la64_mmu_entry_lookup_t la64_mmu_lookup_pte(la64_core_t *core,
+                                                          uint64_t pt_addr,
+                                                          uint16_t idx)
 {
     /*
      * bounds check pt_addr and check if it
@@ -58,11 +58,11 @@ static la64_mmu_entry_lookup_t la64_mmu_lookup_pte(la64_core_t *core,
     return (la64_mmu_entry_lookup_t){ .fail = false, .pte = pte };
 }
 
-static bool la64_mmu_access_pxd(la64_core_t *core,
-                                uint64_t pt_addr,
-                                uint16_t pxd_idx,
-                                uint8_t acc,
-                                uint64_t *oaddr)
+static inline bool la64_mmu_access_pxd(la64_core_t *core,
+                                       uint64_t pt_addr,
+                                       uint16_t pxd_idx,
+                                       uint8_t acc,
+                                       uint64_t *oaddr)
 {
     la64_mmu_entry_lookup_t lookup = la64_mmu_lookup_pte(core, pt_addr, pxd_idx);
     if(lookup.fail)

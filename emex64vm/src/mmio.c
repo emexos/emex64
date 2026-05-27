@@ -29,8 +29,7 @@
 
 la64_mmio_bus_t *la64_mmio_alloc(void)
 {
-    la64_mmio_bus_t *bus = calloc(1, sizeof(la64_mmio_bus_t));
-    return bus;
+    return calloc(1, sizeof(la64_mmio_bus_t));
 }
 
 void la64_mmio_dealloc(la64_mmio_bus_t *bus)
