@@ -43,7 +43,7 @@ static inline la64_mmu_entry_lookup_t la64_mmu_lookup_pte(la64_core_t *core,
     pt_addr = LA64_PAGE_ROUND_DOWN(pt_addr);
     if(!LA64_IN_PHYS_MEMORY(pt_addr, LA64_PAGE_SIZE, core->machine->memory->memory, core->machine->memory->memory_size))
     {
-        return (la64_mmu_entry_lookup_t){ .fail = false, .pte = 0x0 };
+        return (la64_mmu_entry_lookup_t){ .fail = true, .pte = 0x0 };
     }
 
     /* now access the table and check its entry too */
@@ -52,7 +52,7 @@ static inline la64_mmu_entry_lookup_t la64_mmu_lookup_pte(la64_core_t *core,
 
     if(!((pte & LA64_MMU_MASK_FLAGS) & LA64_MMU_PT_PRESENT))
     {
-        return (la64_mmu_entry_lookup_t){ .fail = false, .pte = 0x0 };
+        return (la64_mmu_entry_lookup_t){ .fail = true, .pte = 0x0 };
     }
 
     return (la64_mmu_entry_lookup_t){ .fail = false, .pte = pte };
