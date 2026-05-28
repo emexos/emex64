@@ -26,7 +26,7 @@
 #define EMEX64VM_DEVICE_TIMER_H
 
 #include <stdint.h>
-#include <emex64vm/core.h>
+#include <emex64lib/vm/core.h>
 
 #define LA64_TIMER_BASE     0x1FE00100
 #define LA64_TIMER_SIZE     0x28

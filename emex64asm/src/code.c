@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include <emex64asm/code.h>
-#include <emex64asm/cmptok.h>
-#include <emex64asm/diag.h>
+#include <emex64lib/asm/code.h>
+#include <emex64lib/asm/cmptok.h>
+#include <emex64lib/asm/diag.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

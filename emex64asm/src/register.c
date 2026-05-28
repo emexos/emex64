@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <emex64asm/register.h>
+#include <emex64lib/asm/register.h>
 #include <stdlib.h>
 #include <string.h>
 

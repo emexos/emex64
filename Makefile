@@ -21,4 +21,3 @@ install: compile
 
 clean:
 	rm -rf build
-	rm -rf build/.build

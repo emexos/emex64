@@ -22,32 +22,15 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64VM_INSTRUCTION_ALU_H
-#define EMEX64VM_INSTRUCTION_ALU_H
+#ifndef EMEX64ASM_LABEL_H
+#define EMEX64ASM_LABEL_H
 
-#include <emex64vm/core.h>
+#include <emex64lib/asm/type.h>
 
-void la64_op_add(la64_core_t *core);
-void la64_op_sub(la64_core_t *core);
-void la64_op_mul(la64_core_t *core);
-void la64_op_div(la64_core_t *core);
-void la64_op_idiv(la64_core_t *core);
-void la64_op_mod(la64_core_t *core);
-void la64_op_not(la64_core_t *core);
-void la64_op_neg(la64_core_t *core);
-void la64_op_and(la64_core_t *core);
-void la64_op_or(la64_core_t *core);
-void la64_op_xor(la64_core_t *core);
-void la64_op_shr(la64_core_t *core);
-void la64_op_shl(la64_core_t *core);
-void la64_op_sar(la64_core_t *core);
-void la64_op_ror(la64_core_t *core);
-void la64_op_rol(la64_core_t *core);
+void code_token_label(compiler_invocation_t *ci);
+void code_token_label_append(compiler_token_t *ct);
+void code_token_label_insert_start(compiler_invocation_t *ci);
 
-void la64_op_pdep(la64_core_t *core);
-void la64_op_pext(la64_core_t *core);
-void la64_op_bswapw(la64_core_t *core);
-void la64_op_bswapd(la64_core_t *core);
-void la64_op_bswapq(la64_core_t *core);
+compiler_label_t *label_lookup(compiler_invocation_t *ci, const char *name);
 
-#endif /* EMEX64VM_INSTRUCTION_ALU_H */
+#endif /* EMEX64ASM_LABEL_H */

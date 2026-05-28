@@ -25,11 +25,11 @@
 #ifndef EMEX64ASM_EMIT_H
 #define EMEX64ASM_EMIT_H
 
-#include <emex64vm/core.h>
-#include <emex64vm/memory.h>
-#include <emex64asm/type.h>
-#include <emex64asm/label.h>
-#include <emex64asm/opcode.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/memory.h>
+#include <emex64lib/asm/type.h>
+#include <emex64lib/asm/label.h>
+#include <emex64lib/asm/opcode.h>
 #include <stdbool.h>
 
 #include <emex64lib/fdwalker.h>

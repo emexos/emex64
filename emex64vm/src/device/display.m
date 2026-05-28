@@ -35,8 +35,8 @@
 #include <stdatomic.h>
 
 #include <emex64lib/bitwalker.h>
-#include <emex64vm/device/display.h>
-#include <emex64vm/core.h>
+#include <emex64lib/vm/device/display.h>
+#include <emex64lib/vm/core.h>
 
 static void die(const char* msg)
 {

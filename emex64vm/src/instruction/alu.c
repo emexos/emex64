@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/instruction/instruction.h>
-#include <emex64vm/instruction/alu.h>
+#include <emex64lib/vm/instruction/instruction.h>
+#include <emex64lib/vm/instruction/alu.h>
 
 #if defined(__x86_64__)
 #include <immintrin.h>

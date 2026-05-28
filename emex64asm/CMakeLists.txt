@@ -16,11 +16,6 @@ add_executable(emex64asm
     src/diag.c
 )
 
-target_include_directories(emex64asm
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-)
-
 target_link_libraries(emex64asm
     PRIVATE emex64lib
 )

@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/machine.h>
-#include <emex64vm/device/uart.h>
-#include <emex64vm/device/interrupt.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/device/uart.h>
+#include <emex64lib/vm/device/interrupt.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <termios.h>

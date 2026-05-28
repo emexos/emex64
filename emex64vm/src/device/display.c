@@ -32,8 +32,8 @@
 
 #include <emex64lib/bitwalker.h>
 
-#include <emex64vm/machine.h>
-#include <emex64vm/device/display.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/device/display.h>
 
 #if defined(__linux__)
 

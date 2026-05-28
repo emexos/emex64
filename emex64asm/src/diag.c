@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <emex64asm/diag.h>
+#include <emex64lib/asm/diag.h>
 
 #include <unistd.h>
 #include <stdio.h>

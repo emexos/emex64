@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/instruction/instruction.h>
-#include <emex64vm/instruction/ctrl.h>
-#include <emex64vm/machine.h>
-#include <emex64vm/memory.h>
+#include <emex64lib/vm/instruction/instruction.h>
+#include <emex64lib/vm/instruction/ctrl.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/memory.h>
 #include <stdio.h>
 
 void la64_op_b(la64_core_t *core)

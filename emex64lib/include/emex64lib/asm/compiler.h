@@ -22,36 +22,12 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64VM_MACHINE_H
-#define EMEX64VM_MACHINE_H
+#ifndef EMEX64ASM_COMPILER_H
+#define EMEX64ASM_COMPILER_H
 
-#include <emex64vm/core.h>
-#include <emex64vm/memory.h>
-#include <emex64vm/mmio.h>
+#include <emex64lib/asm/type.h>
 
-#include <emex64vm/device/timer.h>
-#include <emex64vm/device/interrupt.h>
-#include <emex64vm/device/uart.h>
+compiler_invocation_t *compiler_invocation_alloc(const char *output_path);
+void compiler_invocation_dealloc(compiler_invocation_t *ci);
 
-#if defined(__linux__)  || defined(__APPLE__)
-#include <emex64vm/device/display.h>
-#endif /* __linux__ */
-
-#include <stdint.h>
-
-typedef struct la64_machine {
-    la64_core_t *core;
-    la64_memory_t *memory;
-    la64_mmio_bus_t *mmio_bus;
-    la64_intc_t *intc;
-    la64_timer_t *timer;
-    la64_uart_t *uart;
-#if defined(__linux__)  || defined(__APPLE__)
-    la64_display_t *display;
-#endif /* __linux__ */
-} la64_machine_t;
-
-la64_machine_t *la64_machine_alloc(uint64_t memory_size);
-void la64_machine_dealloc(la64_machine_t *machine);
-
-#endif /* EMEX64VM_MACHINE_H */
+#endif /* EMEX64ASM_COMPILER_H */

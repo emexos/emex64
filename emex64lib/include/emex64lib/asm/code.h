@@ -22,16 +22,12 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_REGISTER_H
-#define EMEX64ASM_REGISTER_H
+#ifndef EMEX64ASM_CODE_H
+#define EMEX64ASM_CODE_H
 
-#include <emex64vm/core.h>
+#include <stdlib.h>
+#include <emex64lib/asm/type.h>
 
-typedef struct {
-    const char *name;
-    unsigned char reg;
-} register_entry_t;
+void code_tokengen(compiler_invocation_t *ci, const char **filev, int filec);
 
-register_entry_t *register_from_string(const char *name);
-
-#endif /* EMEX64ASM_REGISTER_H */
+#endif /* EMEX64ASM_CODE_H */

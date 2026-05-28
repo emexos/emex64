@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_LABEL_H
-#define EMEX64ASM_LABEL_H
+#ifndef EMEX64ASM_DIAG_H
+#define EMEX64ASM_DIAG_H
 
-#include <emex64asm/type.h>
+#include <emex64lib/asm/type.h>
 
-void code_token_label(compiler_invocation_t *ci);
-void code_token_label_append(compiler_token_t *ct);
-void code_token_label_insert_start(compiler_invocation_t *ci);
+extern _Thread_local bool warning_error;
 
-compiler_label_t *label_lookup(compiler_invocation_t *ci, const char *name);
+void diag_note(compiler_token_t *ct, const char *msg, ...);
+void diag_warn(compiler_token_t *ct, const char *msg, ...);
+void diag_error(compiler_token_t *ct, const char *msg, ...);
 
-#endif /* EMEX64ASM_LABEL_H */
+#endif /* EMEX64ASM_DIAG_H */

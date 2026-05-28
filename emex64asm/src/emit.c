@@ -33,11 +33,11 @@
 #include <emex64lib/parser.h>
 #include <emex64lib/fdwalker.h>
 
-#include <emex64asm/compiler.h>
-#include <emex64asm/diag.h>
-#include <emex64asm/opcode.h>
-#include <emex64asm/register.h>
-#include <emex64asm/label.h>
+#include <emex64lib/asm/compiler.h>
+#include <emex64lib/asm/diag.h>
+#include <emex64lib/asm/opcode.h>
+#include <emex64lib/asm/register.h>
+#include <emex64lib/asm/label.h>
 
 void la64_compiler_emit_opcode(fdwalker_t *fw,
                                uint8_t op)

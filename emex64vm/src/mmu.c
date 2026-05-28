@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/mmu.h>
-#include <emex64vm/core.h>
-#include <emex64vm/machine.h>
+#include <emex64lib/vm/mmu.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/machine.h>
 #include <stdio.h>
 
 typedef struct la64_mmu_entry_lookup {

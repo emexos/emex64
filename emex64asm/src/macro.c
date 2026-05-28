@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <emex64asm/macro.h>
+#include <emex64lib/asm/macro.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>

@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/memory.h>
-#include <emex64vm/core.h>
-#include <emex64vm/machine.h>
-#include <emex64vm/mmio.h>
-#include <emex64vm/mmu.h>
+#include <emex64lib/vm/memory.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/mmio.h>
+#include <emex64lib/vm/mmu.h>
 
 #include <stdio.h>
 #include <stdlib.h>

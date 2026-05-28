@@ -22,12 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_CODE_H
-#define EMEX64ASM_CODE_H
+#ifndef EMEX64ASM_MACRO_H
+#define EMEX64ASM_MACRO_H
 
-#include <stdlib.h>
-#include <emex64asm/type.h>
+#include <emex64lib/asm/type.h>
 
-void code_tokengen(compiler_invocation_t *ci, const char **filev, int filec);
+void code_token_macro(compiler_invocation_t *ci);
 
-#endif /* EMEX64ASM_CODE_H */
+#endif /* EMEX64ASM_MACRO_H */

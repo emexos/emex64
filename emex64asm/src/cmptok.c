@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <emex64asm/cmptok.h>
+#include <emex64lib/asm/cmptok.h>
 
 _Thread_local const char *ltokptr;
 _Thread_local char otoken[CMPTOK_LENGHT_MAX];

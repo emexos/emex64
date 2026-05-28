@@ -26,13 +26,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <emex64asm/compiler.h>
-#include <emex64asm/code.h>
-#include <emex64asm/label.h>
-#include <emex64asm/emit.h>
-#include <emex64asm/section.h>
-#include <emex64asm/macro.h>
-#include <emex64asm/diag.h>
+#include <emex64lib/asm/compiler.h>
+#include <emex64lib/asm/code.h>
+#include <emex64lib/asm/label.h>
+#include <emex64lib/asm/emit.h>
+#include <emex64lib/asm/section.h>
+#include <emex64lib/asm/macro.h>
+#include <emex64lib/asm/diag.h>
 
 int main(int argc, char *argv[])
 {

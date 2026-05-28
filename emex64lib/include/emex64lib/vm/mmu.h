@@ -27,7 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <emex64vm/core.h>
+#include <emex64lib/vm/core.h>
 
 /* page table entry flags */
 #define LA64_MMU_PT_PRESENT         0b00000001  /* marks a PTE or PXD as present */

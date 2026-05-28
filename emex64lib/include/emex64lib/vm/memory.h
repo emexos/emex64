@@ -22,11 +22,32 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_MACRO_H
-#define EMEX64ASM_MACRO_H
+#ifndef EMEX64VM_MEMORY_H
+#define EMEX64VM_MEMORY_H
 
-#include <emex64asm/type.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-void code_token_macro(compiler_invocation_t *ci);
+#include <emex64lib/vm/core.h>
 
-#endif /* EMEX64ASM_MACRO_H */
+#define LA64_PAGE_SIZE 0x2000
+#define LA64_PAGE_ROUND_DOWN(x) ((x) & ~((LA64_PAGE_SIZE) - 1))
+#define LA64_PAGE_ROUND_UP(x) (((x) + (LA64_PAGE_SIZE) - 1) & ~((LA64_PAGE_SIZE) - 1))
+#define LA64_IN_PHYS_MEMORY(addr, access_size, mem_base, mem_size) (((uintptr_t)(addr) < (uintptr_t)(mem_size)) && ((uintptr_t)(addr) + (access_size) <= (uintptr_t)(mem_size)))
+
+typedef struct la64_memory {
+    uint8_t *memory;
+    uint64_t memory_size;
+} la64_memory_t;
+
+la64_memory_t *la64_memory_alloc(uint64_t size);
+void la64_memory_dealloc(la64_memory_t *memory);
+
+bool la64_memory_load_image(la64_memory_t *memory, const char *image_path);
+
+void *la64_memory_access(la64_core_t *core, uint64_t addr, size_t size);
+bool la64_memory_read(la64_core_t *core, uint64_t addr, size_t size, uint64_t *value);
+bool la64_memory_write(la64_core_t *core, uint64_t addr, uint64_t value, size_t size);
+
+#endif /* EMEX64VM_MEMORY_H */

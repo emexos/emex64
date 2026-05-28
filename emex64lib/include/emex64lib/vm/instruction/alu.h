@@ -22,12 +22,32 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64VM_INSTRUCTION_CORE_H
-#define EMEX64VM_INSTRUCTION_CORE_H
+#ifndef EMEX64VM_INSTRUCTION_ALU_H
+#define EMEX64VM_INSTRUCTION_ALU_H
 
-#include <emex64vm/core.h>
+#include <emex64lib/vm/core.h>
 
-void la64_op_hlt(la64_core_t *core);
-void la64_op_nop(la64_core_t *core);
+void la64_op_add(la64_core_t *core);
+void la64_op_sub(la64_core_t *core);
+void la64_op_mul(la64_core_t *core);
+void la64_op_div(la64_core_t *core);
+void la64_op_idiv(la64_core_t *core);
+void la64_op_mod(la64_core_t *core);
+void la64_op_not(la64_core_t *core);
+void la64_op_neg(la64_core_t *core);
+void la64_op_and(la64_core_t *core);
+void la64_op_or(la64_core_t *core);
+void la64_op_xor(la64_core_t *core);
+void la64_op_shr(la64_core_t *core);
+void la64_op_shl(la64_core_t *core);
+void la64_op_sar(la64_core_t *core);
+void la64_op_ror(la64_core_t *core);
+void la64_op_rol(la64_core_t *core);
 
-#endif /* EMEX64VM_INSTRUCTION_CORE_H */
+void la64_op_pdep(la64_core_t *core);
+void la64_op_pext(la64_core_t *core);
+void la64_op_bswapw(la64_core_t *core);
+void la64_op_bswapd(la64_core_t *core);
+void la64_op_bswapq(la64_core_t *core);
+
+#endif /* EMEX64VM_INSTRUCTION_ALU_H */

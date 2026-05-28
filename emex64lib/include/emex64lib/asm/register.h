@@ -22,15 +22,16 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_DIAG_H
-#define EMEX64ASM_DIAG_H
+#ifndef EMEX64ASM_REGISTER_H
+#define EMEX64ASM_REGISTER_H
 
-#include <emex64asm/type.h>
+#include <emex64lib/vm/core.h>
 
-extern _Thread_local bool warning_error;
+typedef struct {
+    const char *name;
+    unsigned char reg;
+} register_entry_t;
 
-void diag_note(compiler_token_t *ct, const char *msg, ...);
-void diag_warn(compiler_token_t *ct, const char *msg, ...);
-void diag_error(compiler_token_t *ct, const char *msg, ...);
+register_entry_t *register_from_string(const char *name);
 
-#endif /* EMEX64ASM_DIAG_H */
+#endif /* EMEX64ASM_REGISTER_H */

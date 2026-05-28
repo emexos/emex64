@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <emex64vm/mmio.h>
+#include <emex64lib/vm/mmio.h>
 
 la64_mmio_bus_t *la64_mmio_alloc(void)
 {

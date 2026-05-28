@@ -27,8 +27,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <emex64asm/label.h>
-#include <emex64asm/diag.h>
+#include <emex64lib/asm/label.h>
+#include <emex64lib/asm/diag.h>
 #include <unistd.h>
 
 void code_token_label(compiler_invocation_t *ci)

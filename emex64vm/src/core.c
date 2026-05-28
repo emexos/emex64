@@ -28,17 +28,17 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <emex64vm/core.h>
-#include <emex64vm/memory.h>
-#include <emex64vm/machine.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/memory.h>
+#include <emex64lib/vm/machine.h>
 
-#include <emex64vm/device/interrupt.h>
-#include <emex64vm/device/timer.h>
+#include <emex64lib/vm/device/interrupt.h>
+#include <emex64lib/vm/device/timer.h>
 
-#include <emex64vm/instruction/core.h>
-#include <emex64vm/instruction/data.h>
-#include <emex64vm/instruction/alu.h>
-#include <emex64vm/instruction/ctrl.h>
+#include <emex64lib/vm/instruction/core.h>
+#include <emex64lib/vm/instruction/data.h>
+#include <emex64lib/vm/instruction/alu.h>
+#include <emex64lib/vm/instruction/ctrl.h>
 
 #include <emex64lib/bitwalker.h>
 

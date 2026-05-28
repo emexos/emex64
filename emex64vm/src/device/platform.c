@@ -25,8 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <emex64vm/device/platform.h>
-#include <emex64vm/machine.h>
+#include <emex64lib/vm/device/platform.h>
+#include <emex64lib/vm/machine.h>
 
 #if defined(__APPLE__)
 #include <CoreFoundation/CFRunLoop.h>

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/device/rtc.h>
+#include <emex64lib/vm/device/rtc.h>
 #include <stdlib.h>
 #include <time.h>
 

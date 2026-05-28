@@ -25,9 +25,9 @@
 #ifndef EMEX64ASM_OPCODE_H
 #define EMEX64ASM_OPCODE_H
 
-#include <emex64vm/core.h>
+#include <emex64lib/vm/core.h>
 
-#include <emex64asm/type.h>
+#include <emex64lib/asm/type.h>
 
 #include <emex64lib/parser.h>
 #include <emex64lib/bitwalker.h>

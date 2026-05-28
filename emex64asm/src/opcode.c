@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include <emex64asm/opcode.h>
-#include <emex64asm/emit.h>
+#include <emex64lib/asm/opcode.h>
+#include <emex64lib/asm/emit.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -26,11 +26,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <emex64vm/device/interrupt.h>
-#include <emex64vm/core.h>
-#include <emex64vm/machine.h>
-#include <emex64vm/memory.h>
-#include <emex64vm/instruction/ctrl.h>
+#include <emex64lib/vm/device/interrupt.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/memory.h>
+#include <emex64lib/vm/instruction/ctrl.h>
 
 la64_intc_t *la64_intc_alloc(la64_machine_t *machine)
 {

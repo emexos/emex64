@@ -27,10 +27,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <emex64vm/machine.h>
+#include <emex64lib/vm/machine.h>
 
-#include <emex64vm/device/timer.h>
-#include <emex64vm/device/interrupt.h>
+#include <emex64lib/vm/device/timer.h>
+#include <emex64lib/vm/device/interrupt.h>
 
 uint64_t la64_get_host_cycles(void)
 {

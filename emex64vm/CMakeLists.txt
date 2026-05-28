@@ -25,11 +25,6 @@ add_executable(emex64vm
     src/instruction/ctrl.c
 )
 
-target_include_directories(emex64vm
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-)
-
 target_link_libraries(emex64vm
     PRIVATE emex64lib
 )
@@ -40,9 +35,7 @@ if(UNIX AND NOT APPLE)
         PRIVATE GLEW
         PRIVATE GL
     )
-endif()
-
-if(APPLE)
+elseif(APPLE)
     target_sources(emex64vm
         PRIVATE
             src/device/display.m

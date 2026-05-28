@@ -22,32 +22,36 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64VM_MEMORY_H
-#define EMEX64VM_MEMORY_H
+#ifndef EMEX64VM_MACHINE_H
+#define EMEX64VM_MACHINE_H
 
-#include <stdlib.h>
+#include <emex64lib/vm/core.h>
+#include <emex64lib/vm/memory.h>
+#include <emex64lib/vm/mmio.h>
+
+#include <emex64lib/vm/device/timer.h>
+#include <emex64lib/vm/device/interrupt.h>
+#include <emex64lib/vm/device/uart.h>
+
+#if defined(__linux__)  || defined(__APPLE__)
+#include <emex64lib/vm/device/display.h>
+#endif /* __linux__ */
+
 #include <stdint.h>
-#include <stdbool.h>
 
-#include <emex64vm/core.h>
+typedef struct la64_machine {
+    la64_core_t *core;
+    la64_memory_t *memory;
+    la64_mmio_bus_t *mmio_bus;
+    la64_intc_t *intc;
+    la64_timer_t *timer;
+    la64_uart_t *uart;
+#if defined(__linux__)  || defined(__APPLE__)
+    la64_display_t *display;
+#endif /* __linux__ */
+} la64_machine_t;
 
-#define LA64_PAGE_SIZE 0x2000
-#define LA64_PAGE_ROUND_DOWN(x) ((x) & ~((LA64_PAGE_SIZE) - 1))
-#define LA64_PAGE_ROUND_UP(x) (((x) + (LA64_PAGE_SIZE) - 1) & ~((LA64_PAGE_SIZE) - 1))
-#define LA64_IN_PHYS_MEMORY(addr, access_size, mem_base, mem_size) (((uintptr_t)(addr) < (uintptr_t)(mem_size)) && ((uintptr_t)(addr) + (access_size) <= (uintptr_t)(mem_size)))
+la64_machine_t *la64_machine_alloc(uint64_t memory_size);
+void la64_machine_dealloc(la64_machine_t *machine);
 
-typedef struct la64_memory {
-    uint8_t *memory;
-    uint64_t memory_size;
-} la64_memory_t;
-
-la64_memory_t *la64_memory_alloc(uint64_t size);
-void la64_memory_dealloc(la64_memory_t *memory);
-
-bool la64_memory_load_image(la64_memory_t *memory, const char *image_path);
-
-void *la64_memory_access(la64_core_t *core, uint64_t addr, size_t size);
-bool la64_memory_read(la64_core_t *core, uint64_t addr, size_t size, uint64_t *value);
-bool la64_memory_write(la64_core_t *core, uint64_t addr, uint64_t value, size_t size);
-
-#endif /* EMEX64VM_MEMORY_H */
+#endif /* EMEX64VM_MACHINE_H */

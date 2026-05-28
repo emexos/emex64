@@ -23,11 +23,11 @@
  */
 
 #include <stdlib.h>
-#include <emex64vm/machine.h>
+#include <emex64lib/vm/machine.h>
 
-#include <emex64vm/device/rtc.h>
-#include <emex64vm/device/platform.h>
-#include <emex64vm/device/mc.h>
+#include <emex64lib/vm/device/rtc.h>
+#include <emex64lib/vm/device/platform.h>
+#include <emex64lib/vm/device/mc.h>
 
 la64_machine_t *la64_machine_alloc(uint64_t memory_size)
 {

@@ -22,12 +22,23 @@
  * SOFTWARE.
  */
 
-#ifndef EMEX64ASM_SECTION_H
-#define EMEX64ASM_SECTION_H
+#ifndef EMEX64VM_INSTRUCTION_DATA_H
+#define EMEX64VM_INSTRUCTION_DATA_H
 
-#include <emex64asm/type.h>
+#include <emex64lib/vm/core.h>
 
-void code_token_section(compiler_invocation_t *ci);
-void code_remove_sections(compiler_invocation_t *ci);
+void la64_op_mov(la64_core_t *core);
+void la64_op_swp(la64_core_t *core);
+void la64_op_swpz(la64_core_t *core);
+void la64_op_push(la64_core_t *core);
+void la64_op_pop(la64_core_t *core);
+void la64_op_ldb(la64_core_t *core);
+void la64_op_ldw(la64_core_t *core);
+void la64_op_ldd(la64_core_t *core);
+void la64_op_ldq(la64_core_t *core);
+void la64_op_stb(la64_core_t *core);
+void la64_op_stw(la64_core_t *core);
+void la64_op_std(la64_core_t *core);
+void la64_op_stq(la64_core_t *core);
 
-#endif /* EMEX64ASM_SECTION_H */
+#endif /* EMEX64VM_INSTRUCTION_DATA_H */

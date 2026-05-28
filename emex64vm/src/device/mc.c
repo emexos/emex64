@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include <emex64vm/machine.h>
-#include <emex64vm/device/mc.h>
+#include <emex64lib/vm/machine.h>
+#include <emex64lib/vm/device/mc.h>
 
 #include <stdlib.h>
 
