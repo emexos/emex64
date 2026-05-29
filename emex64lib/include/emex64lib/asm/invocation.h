@@ -45,9 +45,6 @@ typedef struct assembler_invocation {
     bool warning_deprecated;                /* default: true */
 } assembler_invocation_t;
 
-/* MARK: compatibility */
-typedef assembler_invocation_t compiler_invocation_t;
-
 assembler_invocation_t *assembler_invocation_alloc(const char *output_path);
 void assembler_invocation_dealloc(assembler_invocation_t *inv);
 
