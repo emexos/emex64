@@ -26,6 +26,7 @@
 #define EMEX64ASM_SECTION_H
 
 #include <emex64lib/asm/type.h>
+#include <emex64lib/asm/invocation.h>
 
 void code_token_section(compiler_invocation_t *ci);
 void code_remove_sections(compiler_invocation_t *ci);

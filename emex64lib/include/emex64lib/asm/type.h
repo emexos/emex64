@@ -40,7 +40,7 @@
 #define ASSEMBLER_LINE_TYPE_MACRODEF             0b0110
 
 typedef unsigned char compiler_line_type_t;
-typedef struct compiler_invocation compiler_invocation_t;
+typedef struct assembler_invocation compiler_invocation_t;
 typedef struct compiler_line compiler_line_t;
 
 typedef struct {
@@ -80,23 +80,5 @@ struct reloc_table_entry {
     compiler_token_t *ctlink;               /* link to the originator of the entry */
     reloc_table_entry_t *next;              /* pointer to next entry */
 };
-
-typedef struct compiler_invocation {
-    compiler_file_t *file;                  /* code files */
-    size_t file_cnt;                        /* count of files */
-    compiler_line_t *line;                  /* token array */
-    uint64_t line_cnt;                      /* count of tokens */
-    char *label_scope;                      /* current resolved label scope */
-    compiler_label_t *label;                /* label array */
-    uint64_t label_cnt;                     /* count of labels */
-    reloc_table_entry_t *rtbe;              /* relocation table root entry */
-    fdwalker_t *fdwalker;
-
-    /* options */
-    bool page_align;                        /* default: true */
-    const char *start_entry_name;           /* default: _start */
-    bool warning_error;                     /* default: false */
-    bool warning_deprecated;                /* default: true */
-} compiler_invocation_t;
 
 #endif /* EMEX64ASM_TYPE_H */

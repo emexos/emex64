@@ -26,6 +26,7 @@
 #define EMEX64ASM_LABEL_H
 
 #include <emex64lib/asm/type.h>
+#include <emex64lib/asm/invocation.h>
 
 void code_token_label(compiler_invocation_t *ci);
 void code_token_label_append(compiler_token_t *ct);

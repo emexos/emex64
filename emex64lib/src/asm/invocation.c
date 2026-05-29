@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <emex64lib/asm/compiler.h>
+#include <emex64lib/asm/invocation.h>
 #include <emex64lib/asm/code.h>
 #include <emex64lib/asm/label.h>
 #include <emex64lib/asm/emit.h>
@@ -35,45 +35,44 @@
 #include <emex64lib/asm/macro.h>
 #include <emex64lib/asm/diag.h>
 
-compiler_invocation_t *compiler_invocation_alloc(const char *output_path)
+assembler_invocation_t *assembler_invocation_alloc(const char *output_path)
 {
     /* open file */
     int fd = open(output_path, O_RDWR | O_CREAT | O_TRUNC, 0777);
-
     if(fd < 0)
     {
         return NULL;
     }
 
-    compiler_invocation_t *ci = malloc(sizeof(compiler_invocation_t));
-
-    if(ci == NULL)
+    assembler_invocation_t *inv = calloc(1, sizeof(assembler_invocation_t));
+    if(inv == NULL)
     {
         close(fd);
         return NULL;
     }
 
     /* zero out invocation */
-    bzero(ci, sizeof(compiler_invocation_t));
-
-    ci->fdwalker = malloc(sizeof(fdwalker_t));
-
-    if(ci->fdwalker == NULL)
+    inv->fdwalker = malloc(sizeof(fdwalker_t));
+    if(inv->fdwalker == NULL)
     {
-        free(ci);
+        free(inv);
         close(fd);
         return NULL;
     }
 
-    fdwalker_init(ci->fdwalker, fd, BW_LITTLE_ENDIAN);
-    fdwalker_seek(ci->fdwalker, 8, 0);
+    fdwalker_init(inv->fdwalker, fd, BW_LITTLE_ENDIAN);
+    fdwalker_seek(inv->fdwalker, 8, 0);
 
-    ci->page_align = true;  /* default value */
+    /* setting default values */
+    inv->page_align = true;  /* default value */
+    inv->start_entry_name = "_start";
+    inv->warning_error = false;
+    inv->warning_deprecated = true;
     
-    return ci;
+    return inv;
 }
 
-void compiler_invocation_dealloc(compiler_invocation_t *ci)
+void assembler_invocation_dealloc(assembler_invocation_t *inv)
 {
     /* todo: this must be redone from scratch */
 }

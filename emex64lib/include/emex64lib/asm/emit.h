@@ -27,9 +27,11 @@
 
 #include <emex64lib/vm/core.h>
 #include <emex64lib/vm/memory.h>
+#include <emex64lib/asm/invocation.h>
 #include <emex64lib/asm/type.h>
 #include <emex64lib/asm/label.h>
 #include <emex64lib/asm/opcode.h>
+#include <emex64lib/asm/invocation.h>
 #include <stdbool.h>
 
 #include <emex64lib/support/fdwalker.h>

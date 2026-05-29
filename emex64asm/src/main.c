@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <emex64lib/asm/compiler.h>
+#include <emex64lib/asm/invocation.h>
 #include <emex64lib/asm/code.h>
 #include <emex64lib/asm/label.h>
 #include <emex64lib/asm/emit.h>
@@ -155,17 +155,16 @@ int main(int argc, char *argv[])
     }
 
     /* allocating compiler invocation */
-    compiler_invocation_t *ci = compiler_invocation_alloc(output_path);
-
-    if(ci == NULL)
+    assembler_invocation_t *ai = assembler_invocation_alloc(output_path);
+    if(ai == NULL)
     {
         diag_error(NULL, "something went terribly wrong\n");
     }
 
-    ci->page_align = page_align;
-    ci->start_entry_name = start_entry_name;
-    ci->warning_error = warning_error;
-    ci->warning_deprecated = warning_deprecated;
+    ai->page_align = page_align;
+    ai->start_entry_name = start_entry_name;
+    ai->warning_error = warning_error;
+    ai->warning_deprecated = warning_deprecated;
 
     /* remaining arguments are input files */
     if(file_count <= 0)
@@ -174,21 +173,18 @@ int main(int argc, char *argv[])
     }
 
     /* generating tokens,labels,sections out of the code */
-    code_tokengen(ci, (const char **)files, file_count);
+    code_tokengen(ai, (const char **)files, file_count);
 
     /* doing parsing acrobatic */
-    code_token_label(ci);
-    code_token_section(ci);
-    code_token_macro(ci);
+    code_token_label(ai);
+    code_token_section(ai);
+    code_token_macro(ai);
 
     /* finally compiling it to machine code */
-    la64_compiler_emit_all(ci);
+    la64_compiler_emit_all(ai);
 
     /* insert entry */
-    code_token_label_insert_start(ci);
-
-    /* its oneshot */
-    /* compiler_invocation_dealloc(ci); */
+    code_token_label_insert_start(ai);
 
     /* cleanup */
     for(int i = 0; i < file_count; i++)

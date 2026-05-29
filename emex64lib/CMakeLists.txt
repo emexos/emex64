@@ -38,7 +38,7 @@ add_library(emex64lib STATIC
     src/asm/cmptok.c
     src/asm/code.c
     src/asm/emit.c
-    src/asm/compiler.c
+    src/asm/invocation.c
     src/asm/label.c
     src/asm/opcode.c
     src/asm/register.c

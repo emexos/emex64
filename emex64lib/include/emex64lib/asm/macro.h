@@ -26,6 +26,7 @@
 #define EMEX64ASM_MACRO_H
 
 #include <emex64lib/asm/type.h>
+#include <emex64lib/asm/invocation.h>
 
 void code_token_macro(compiler_invocation_t *ci);
 

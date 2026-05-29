@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <emex64lib/asm/type.h>
+#include <emex64lib/asm/invocation.h>
 
 void code_tokengen(compiler_invocation_t *ci, const char **filev, int filec);
 
