@@ -80,11 +80,12 @@ bool la64_memory_load_image(la64_memory_t *memory,
     int fd = open(image_path, O_RDONLY);
     if(fd == -1)
     {
-        printf("[vm] failed to open bios image at path %s\n", image_path);
+
+        printf("[vm] failed to open boot image at path %s\n", image_path);
         return false;
     }
 
-    /* gather information of bios image  */
+    /* gather size of bios image */
     struct stat image_stat;
     if(fstat(fd, &image_stat) != 0)
     {
@@ -92,26 +93,18 @@ bool la64_memory_load_image(la64_memory_t *memory,
         return false;
     }
 
-    size_t image_size = LA64_PAGE_ROUND_UP(image_stat.st_size);
+    size_t image_size = image_stat.st_size;
     if(image_size > memory->memory_size)
     {
-        printf("[vm] error: bios image is too large\n");
+        printf("[vm] error: boot image is too large\n");
         return false;
     }
-
-    /*
-     * writing bios image by mapping it
-     * and writing it back.
-     */
-    void *image_mapped = mmap(NULL, image_size, PROT_READ, MAP_SHARED, fd, 0);
-    if(image_mapped == MAP_FAILED)
+    
+    if(read(fd, memory->memory, image_size) <= 0)
     {
-        printf("[vm] error: failed to map bios image\n");
+        printf("[boot] error: reading boot image failed\n");
         return false;
     }
-
-    memcpy(memory->memory, image_mapped, image_size);
-    munmap(image_mapped, image_size);
 
     close(fd);
 

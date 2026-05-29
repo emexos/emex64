@@ -12,7 +12,7 @@ else()
     option(EMEX64LIB_STATIC "Link statically against emex64lib" ON)
 endif()
 
-if(APPLE AND EMEX64LIB_STATIC)
+if(APPLE AND NOT EMEX64LIB_STATIC)
     set(CMAKE_MACOSX_RPATH TRUE)
     set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
     
