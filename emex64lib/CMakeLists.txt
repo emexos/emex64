@@ -94,6 +94,11 @@ else()
     target_compile_options(emex64lib PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
 
+target_link_libraries(emex64lib
+    PRIVATE
+        Threads::Threads
+)
+
 if(EMEX64VM_DEVICE_DISPLAY)
     if(UNIX AND NOT APPLE)
         target_link_libraries(emex64lib
