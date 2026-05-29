@@ -98,10 +98,11 @@ bool la64_memory_load_image(la64_memory_t *memory,
         diag_error(NULL, "boot image is too large\n");
     }
 
-    if(read(fd, memory->memory, image_size) <= 0)
+    /* overmap the memory with the file in a dirty way tehe ^^ */
+    void *mapped = mmap(memory->memory, image_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, 0);
+    if(mapped == MAP_FAILED)
     {
-        diag_error(NULL, "reading boot image failed\n");
-        return false;
+        diag_error(NULL, "mapping boot image failed\n");
     }
 
     close(fd);
