@@ -5,6 +5,8 @@ project(emex64lib
     LANGUAGES C
 )
 
+find_package(Threads REQUIRED)
+
 option(EMEX64VM_DEVICE_DISPLAY "Enable display device support" ON)
 
 if(EMEX64VM_DEVICE_DISPLAY)
