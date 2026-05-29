@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-#pragma mark - opcode
+/* opcode */
 
 /* core operations */
 #define LA64_OPCODE_HLT             0b00000000
@@ -90,7 +90,7 @@
 
 #define LA64_OPCODE_MAX             LA64_OPCODE_IRET
 
-#pragma mark - parameter modes
+/* parameter modes */
 
 #define LA64_PARAMETER_CODING_INSTR_END 0b000   /* instruction end marker for instructions dynamic in lenght */
 #define LA64_PARAMETER_CODING_REG       0b001   /* register */
