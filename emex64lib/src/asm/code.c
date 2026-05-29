@@ -154,7 +154,7 @@ void assembler_code_parse(assembler_invocation_t *inv,
         }
 
         /* copy subtokens */
-        inv->line[i].token = calloc(sizeof(compiler_token_t), inv->line[i].token_cnt);
+        inv->line[i].token = calloc(inv->line[i].token_cnt, sizeof(compiler_token_t));
         inv->line[i].token_cnt = 0;
 
         /*
