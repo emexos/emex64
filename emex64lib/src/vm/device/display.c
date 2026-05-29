@@ -46,13 +46,6 @@ static void die(const char* msg)
     exit(1);
 }
 
-static double now_sec(void)
-{
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec + ts.tv_nsec * 1e-9;
-}
-
 static GLuint compileShader(GLenum type, const char* src)
 {
     GLuint s = glCreateShader(type);
@@ -207,17 +200,11 @@ void *display_start(void *arg)
     glUniform1i(glGetUniformLocation(prog,"uIndexTex"),0);
     glUniform1i(glGetUniformLocation(prog,"uPalette"),1);
 
-    double prev = now_sec();
-    double acc  = 0.0;
     int pboIdx = 0;
 
     while(!glfwWindowShouldClose(win))
     {
         glfwPollEvents();
-
-        double now = now_sec();
-        acc += now - prev;
-        prev = now;
 
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER,pbo[pboIdx]);
         uint8_t* ptr = (uint8_t*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER,0,LA64_FB_SIZE, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
