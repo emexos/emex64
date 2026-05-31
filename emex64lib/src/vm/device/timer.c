@@ -187,9 +187,6 @@ uint64_t la64_timer_read(la64_core_t *core,
                          uint64_t offset,
                          int size)
 {
-    (void)core;
-    (void)size;
-
     /* getting timer */
     la64_timer_t *timer = (la64_timer_t *)device;
 
@@ -217,9 +214,6 @@ void la64_timer_write(la64_core_t *core,
                       uint64_t value,
                       int size)
 {
-    (void)core;
-    (void)size;
-
     /* getting timer */
     la64_timer_t *timer = (la64_timer_t *)device;
 

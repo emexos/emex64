@@ -54,8 +54,6 @@ static void uart_restore_mode(void)
 static void uart_update_irq(la64_uart_t *u)
 {    
     int level = ((u->control & UART_CTRL_RX_IRQ_EN) && (u->status & UART_STATUS_RX_READY)) || ((u->control & UART_CTRL_TX_IRQ_EN) && (u->status & UART_STATUS_TX_EMPTY));
-
-    /* updating interrupt */
     if(level)
     {
         la64_raise_interrupt(u->machine, LA64_IRQ_UART);
@@ -158,8 +156,6 @@ la64_uart_t *la64_uart_alloc(la64_machine_t *machine)
 {
     /* allocate uart */
     la64_uart_t *u = malloc(sizeof(la64_uart_t));
-
-    /* null pointer check */
     if(u == NULL)
     {
         return NULL;
@@ -193,9 +189,6 @@ void la64_uart_dealloc(la64_uart_t *u)
 
 uint64_t la64_uart_read(la64_core_t *core, void *device, uint64_t offset, int size)
 {
-    (void)core;
-    (void)size;
-
     /* getting uart */
     la64_uart_t *u = (la64_uart_t *)device;
 
@@ -234,9 +227,6 @@ uint64_t la64_uart_read(la64_core_t *core, void *device, uint64_t offset, int si
 
 void la64_uart_write(la64_core_t *core, void *device, uint64_t offset, uint64_t value, int size)
 {
-    (void)core;
-    (void)size;
-
     /* getting uart */
     la64_uart_t *u = (la64_uart_t *)device;
 
