@@ -46,11 +46,12 @@ int main(int argc, char *argv[])
     {
         if(strcmp(argv[i], "--help") == 0)
         {
-            printf("%s [options]\n", argv[0]);
-            printf("\t--help                 : showing help menu\n");
-            printf("\t--bios <image path>    : providing bios image\n");
-            printf("\t--memory <memory size> : providing memory size in megabyte\n");
-            return 0;
+        usage:
+            fprintf(stderr, "%s [options]\n", argv[0]);
+            fprintf(stderr, "\t--help                 : showing help menu\n");
+            fprintf(stderr, "\t--bios <image path>    : providing bios image\n");
+            fprintf(stderr, "\t--memory <memory size> : providing memory size in megabyte\n");
+            return 1;
         }
         else if(strcmp(argv[i], "--bios") == 0 && i + 1 < argc)
         {
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
         diag_error(NULL, "no bios image provided\n");
     }
 
-    /* creating new la16 virtual machine */
+    /* creating new la64 virtual machine */
     la64_machine_t *machine = la64_machine_alloc(memsize);
     if(machine == NULL)
     {
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
      */
     if(!la64_memory_load_image(machine->memory, bios_image))
     {
-        goto usage;
+        diag_error(NULL, "failed to load bios image\n");
     }
 
     /*
@@ -113,8 +114,4 @@ int main(int argc, char *argv[])
     la64_machine_dealloc(machine);
 
     return 0;
-
-usage:
-    printf("%s <boot image>\n", (argv == NULL || argv[0] == NULL) ? "(nil)" : argv[0]);
-    return 1;
 }
