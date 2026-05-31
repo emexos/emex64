@@ -369,7 +369,10 @@ bool assembler_emit(assembler_invocation_t *inv)
            inv->line[i].type == ASSEMBLER_LINE_TYPE_LOCAL_LABEL)
         {
             /* insert into labels */
-            assembler_label_append(&(inv->line[i].token[0]));
+            if(!assembler_label_append(&(inv->line[i].token[0])))
+            {
+                return false;
+            }
         }
         else if(inv->line[i].type == ASSEMBLER_LINE_TYPE_ASM)
         {
@@ -388,6 +391,7 @@ bool assembler_emit(assembler_invocation_t *inv)
     if(fstat(inv->fdwalker->fd, &st) == -1)
     {
         diag_error(NULL, "fatal error occured, pls report\n");
+        return false;
     }
 
     inv->label[inv->label_cnt].addr = st.st_size;

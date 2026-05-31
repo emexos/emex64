@@ -24,20 +24,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/mman.h>
-#include <limits.h>
 
 #include <emex64lib/support/diag.h>
 
 #include <emex64lib/asm/code.h>
 #include <emex64lib/asm/cmptok.h>
 
-void assembler_code_parse(assembler_invocation_t *inv,
+bool assembler_code_parse(assembler_invocation_t *inv,
                           const char **filev,
                           int filec)
 {
@@ -55,12 +51,14 @@ void assembler_code_parse(assembler_invocation_t *inv,
         inv->file[i] = emex_file_alloc(filev[i]);
         if(inv->file[i] == NULL)
         {
-            diag_error(NULL, "failed to find file at path \"%s\"", filev[i]);
+            diag_error(NULL, "failed to find file at path \"%s\"\n", filev[i]);
+            return false;
         }
 
         if(!emex_file_open(inv->file[i]))
         {
-            diag_error(NULL, "failed to open file at path \"%s\"", filev[i]);
+            diag_error(NULL, "failed to open file at path \"%s\"\n", filev[i]);
+            return false;
         }
     }
 
@@ -196,7 +194,7 @@ void assembler_code_parse(assembler_invocation_t *inv,
                         break;
                     default:
                         diag_error(&(inv->line[i].token[0]), "illegal label definition \"%s\"\n", inv->line[i].token[0].str);
-                        break;
+                        return false;
                 }
 
                 continue;
@@ -234,4 +232,6 @@ void assembler_code_parse(assembler_invocation_t *inv,
     {
         emex_file_close(inv->file[i]);
     }
+
+    return true;
 }

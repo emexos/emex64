@@ -39,7 +39,7 @@ static inline unsigned long align_up(unsigned long v, unsigned long a)
     return (v + a - 1) & ~(a - 1);
 }
 
-void assembler_section_parse(assembler_invocation_t *inv)
+bool assembler_section_parse(assembler_invocation_t *inv)
 {
     /* iterating for section token type and creating data section */
     for(unsigned long i = 0; i < inv->line_cnt; i++)
@@ -56,6 +56,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                     if(inv->line[i].token_cnt < 3)
                     {
                         diag_error(&(inv->line[i].token[inv->line[i].token_cnt - 1]), "insufficient tokens for entry in .data section\n");
+                        return false;
                     }
 
                     /* inserting address as label */
@@ -79,6 +80,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                     else if(strcmp(inv->line[i].token[1].str, "db") != 0)
                     {
                         diag_error(&(inv->line[i].token[1]), "invalid data type for .data section entry \"%s\"\n", inv->line[i].token[1].str);
+                        return false;
                     }
 
                     /* iterating through the chain */
@@ -99,6 +101,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                             if(dbs != 64)
                             {
                                 diag_error(&(inv->line[i].token[a]), "don't put labels inside improper data types, i watch you!\n");
+                                return false;
                             }
 
                             /* using finally the relocation table to its full extend */
@@ -159,6 +162,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                     if(inv->line[i].token_cnt != 3)
                     {
                         diag_error(&(inv->line[i].token[inv->line[i].token_cnt - 1]), "insufficient or too many tokens for entry in .bss section\n");
+                        return false;
                     }
 
                     /* insert label into label array */
@@ -182,6 +186,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                     else if(strcmp(inv->line[i].token[1].str, "db") != 0)
                     {
                         diag_error(&(inv->line[i].token[1]), "invalid data type for .bss section entry \"%s\"\n", inv->line[i].token[1].str);
+                        return false;
                     }
 
                     /* offset image address by value */
@@ -192,6 +197,7 @@ void assembler_section_parse(assembler_invocation_t *inv)
                     if(pr.type != emexParserValueTypeNumber)
                     {
                         diag_error(&(inv->line[i].token[2]), "invalid size for .bss section entry \"%s\"\n", inv->line[i].token[2].str);
+                        return false;
                     }
 
                     inv->fdwalker->byte_pos += (dbs / 8) * pr.value;
@@ -206,4 +212,6 @@ void assembler_section_parse(assembler_invocation_t *inv)
         inv->fdwalker->byte_pos = align_up(inv->fdwalker->byte_pos, 0x2000);
         inv->fdwalker->bit_idx = 0;
     }
+
+    return true;
 }

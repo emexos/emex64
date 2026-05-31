@@ -32,9 +32,12 @@
 #include <emex64lib/vm/core.h>
 
 #define LA64_PAGE_SIZE 0x2000
+#define LA64_PAGE_MASK (LA64_PAGE_SIZE - 1)
 #define LA64_PAGE_ROUND_DOWN(x) ((x) & ~((LA64_PAGE_SIZE) - 1))
 #define LA64_PAGE_ROUND_UP(x) (((x) + (LA64_PAGE_SIZE) - 1) & ~((LA64_PAGE_SIZE) - 1))
 #define LA64_IN_PHYS_MEMORY(addr, access_size, mem_base, mem_size) (((uintptr_t)(addr) < (uintptr_t)(mem_size)) && ((uintptr_t)(addr) + (access_size) <= (uintptr_t)(mem_size)))
+#define LA64_BYTES_TO_PAGE_BOUNDARY(addr) (LA64_PAGE_SIZE - ((uintptr_t)(addr) & LA64_PAGE_MASK))
+#define LA64_CROSS_PAGE_OFFSET(addr, access_size) (((access_size) > LA64_BYTES_TO_PAGE_BOUNDARY(addr)) ? LA64_BYTES_TO_PAGE_BOUNDARY(addr) : 0)
 
 typedef struct la64_memory {
     uint8_t *memory;

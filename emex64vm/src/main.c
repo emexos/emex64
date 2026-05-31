@@ -67,17 +67,20 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "illegal value type used\n", argv[i]);
+                return 1;
             }
         }
         else
         {
             diag_error(NULL, "unknown option '%s'\n", argv[i]);
+            return 1;
         }
     }
 
     if(bios_image == NULL)
     {
         diag_error(NULL, "no bios image provided\n");
+        return 1;
     }
 
     /* creating new la64 virtual machine */
@@ -85,6 +88,7 @@ int main(int argc, char *argv[])
     if(machine == NULL)
     {
         diag_error(NULL, "failed to allocated machine\n");
+        return 1;
     }
 
     /*
@@ -95,6 +99,7 @@ int main(int argc, char *argv[])
     if(!la64_memory_load_image(machine->memory, bios_image))
     {
         diag_error(NULL, "failed to load bios image\n");
+        return 1;
     }
 
     /*

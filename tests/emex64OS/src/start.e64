@@ -88,8 +88,8 @@ _pt_entry_lookup:
 
 ;
 ; r0: page table pte (same value as valid in CRPTB)
-; r1: physical address
-; r2: physical lenght
+; r1: physical page start
+; r2: virtual page start
 ; r3: flags
 ;
 ; rr: if it's not null then it's a page address for the root page
@@ -103,20 +103,35 @@ _pt_entry_lookup:
 ;       one for you and return in rr.
 ;
 _pt_map:
+    ; first get down to the page address
+    clr r4, r5, r6, r7
+    shr r4, r1, 43  ; pgd index
+    and r4, 0x3FF
+    shr r5, r1, 33  ; pud index
+    and r5, 0x3FF
+    shr r6, r1, 23  ; pmd index
+    and r6, 0x3FF
+    shr r7, r1, 13  ; pte index
+    and r7, 0x3FF
+
+    bl _kcalloc, 4, 8
+
     ; checking weither root page table is present
-    and r4, r0, PT_PRESENT
+    and r8, r0, PT_PRESENT
     cmp r4, PT_PRESENT
     shl r4, r0, 13
     bne .skip_creating_root_table
 
     ; creating root page table
     bl _pmm_alloc_zero
-    mov r4, rr  ; just move that shi
+    mov r9, rr  ; just move that shi
 
 .skip_creating_root_table:
+    ;push r4
     ; now it shall be created and the pgd table sits in r4
-    
-    
+    ;shr r1, 
+    ;bl _pt_entry_lookup, r4, 
+    ;pop rr
     ret
 
 _pt_unmap:

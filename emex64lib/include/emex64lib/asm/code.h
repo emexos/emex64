@@ -26,9 +26,10 @@
 #define EMEX64ASM_CODE_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <emex64lib/asm/type.h>
 #include <emex64lib/asm/invocation.h>
 
-void assembler_code_parse(assembler_invocation_t *inv, const char **filev, int filec);
+bool assembler_code_parse(assembler_invocation_t *inv, const char **filev, int filec);
 
 #endif /* EMEX64ASM_CODE_H */

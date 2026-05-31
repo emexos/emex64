@@ -33,7 +33,7 @@
 
 #include <emex64lib/asm/label.h>
 
-void assembler_label_prealloc(assembler_invocation_t *inv)
+bool assembler_label_prealloc(assembler_invocation_t *inv)
 {
     /*
      * counting labels caught at token parsing
@@ -56,6 +56,13 @@ void assembler_label_prealloc(assembler_invocation_t *inv)
     /* allocating memory for those */
     inv->label = calloc(inv->label_cnt, sizeof(compiler_label_t));
     inv->label_cnt = 0;
+
+    if(inv->label == NULL)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 compiler_label_t *assembler_label_lookup(assembler_invocation_t *inv,
@@ -72,7 +79,7 @@ compiler_label_t *assembler_label_lookup(assembler_invocation_t *inv,
     return NULL;
 }
 
-void assembler_label_append(compiler_token_t *ct)
+bool assembler_label_append(compiler_token_t *ct)
 {
     /* accessing compiler line and invocation */
     compiler_line_t *cl = ct->cl;
@@ -99,6 +106,7 @@ void assembler_label_append(compiler_token_t *ct)
         if(ci->label_scope == NULL)
         {
             diag_error(ct, "defining a local label out of any global label is illegal \"%s\"\n", name);
+            return false;
         }
     }
     else
@@ -119,23 +127,29 @@ void assembler_label_append(compiler_token_t *ct)
     {
         diag_note(label->ctlink, "label \"%s\" already defined here\n", name);
         diag_error(ct, "duplicated label \"%s\"\n", name);
+        return false;
     }
 
     ci->label[ci->label_cnt].ctlink = ct;
     ci->label[ci->label_cnt++].name = name;
+
+    return true;
 }
 
-void assembler_label_insert_start_entry(assembler_invocation_t *inv)
+bool assembler_label_insert_start_entry(assembler_invocation_t *inv)
 {
     /* finding start label */
     compiler_label_t *label = assembler_label_lookup(inv, inv->options.start_entry_name);
     if(label == NULL)
     {
         diag_error(NULL, "\"%s\" label not found, cannot produce boot image\n", inv->options.start_entry_name);
+        return false;
     }
 
     /* writing start address into the start of the image */
     fdwalker_t fw = *(inv->fdwalker);
     fdwalker_seek(&fw, 0, 0);
     fdwalker_write(&fw, label->addr, 64);
+
+    return true;
 }

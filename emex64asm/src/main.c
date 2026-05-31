@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "missing argument to '-f'\n");
+                goto failed;
             }
 
             if(strcmp(flag, "page_align") == 0)
@@ -82,6 +83,7 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "unknown feature flag '%s'\n", flag);
+                goto failed;
             }
         }
         else if(strncmp(argv[i], "-W", 2) == 0)
@@ -98,6 +100,7 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "missing argument to '-W'\n");
+                goto failed;
             }
 
             if(strcmp(flag, "error") == 0)
@@ -119,6 +122,7 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "unknown warning flag '%s'\n", flag);
+                goto failed;
             }
         }
         else if(strncmp(argv[i], "-e", 2) == 0)
@@ -135,6 +139,7 @@ int main(int argc, char *argv[])
             else
             {
                 diag_error(NULL, "missing argument to '-e'\n");
+                goto failed;
             }
 
             start_entry_name = flag;
@@ -146,6 +151,7 @@ int main(int argc, char *argv[])
         else
         {
             diag_error(NULL, "unknown option '%s'\n", argv[i]);
+            goto failed;
         }
     }
 
@@ -168,27 +174,37 @@ int main(int argc, char *argv[])
     if(inv == NULL)
     {
         diag_error(NULL, "something went terribly wrong\n");
+        goto failed;
     }
 
     /* remaining arguments are input files */
     if(file_count <= 0)
     {
         diag_error(NULL, "no input files provided\n");
+        goto failed;
     }
 
     /* generating tokens,labels,sections out of the code */
-    assembler_code_parse(inv, (const char **)files, file_count);
+    if(!assembler_code_parse(inv, (const char **)files, file_count) ||
+       !assembler_label_prealloc(inv) ||
+       !assembler_section_parse(inv))
+    {
+        goto failed;
+    }
 
-    /* doing parsing acrobatic */
-    assembler_label_prealloc(inv);
-    assembler_section_parse(inv);
     assembler_macro_expand(inv);
 
     /* finally compiling it to machine code */
-    assembler_emit(inv);
+    if(!assembler_emit(inv))
+    {
+        goto failed;
+    }
 
     /* insert entry */
-    assembler_label_insert_start_entry(inv);
+    if(!assembler_label_insert_start_entry(inv))
+    {
+        goto failed;
+    }
 
     /* cleanup */
     for(int i = 0; i < file_count; i++)
@@ -198,4 +214,8 @@ int main(int argc, char *argv[])
     free(files);
 
     return 0;
+
+failed:
+    unlink(output_path);
+    return 1;
 }

@@ -25,12 +25,14 @@
 #ifndef EMEX64ASM_LABEL_H
 #define EMEX64ASM_LABEL_H
 
+#include <stdbool.h>
+
 #include <emex64lib/asm/type.h>
 #include <emex64lib/asm/invocation.h>
 
-void assembler_label_prealloc(assembler_invocation_t *inv);
-void assembler_label_append(compiler_token_t *ct);
-void assembler_label_insert_start_entry(assembler_invocation_t *inv);
+bool assembler_label_prealloc(assembler_invocation_t *inv);
+bool assembler_label_append(compiler_token_t *ct);
+bool assembler_label_insert_start_entry(assembler_invocation_t *inv);
 
 compiler_label_t *assembler_label_lookup(assembler_invocation_t *inv, const char *name);
 

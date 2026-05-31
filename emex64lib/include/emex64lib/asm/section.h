@@ -28,6 +28,6 @@
 #include <emex64lib/asm/type.h>
 #include <emex64lib/asm/invocation.h>
 
-void assembler_section_parse(assembler_invocation_t *inv);
+bool assembler_section_parse(assembler_invocation_t *inv);
 
 #endif /* EMEX64ASM_SECTION_H */

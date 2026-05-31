@@ -83,26 +83,33 @@ bool la64_memory_load_image(la64_memory_t *memory,
     if(fd == -1)
     {
         diag_error(NULL, "failed to open boot image at path \"%s\"\n", image_path);
+        return false;
     }
 
     /* gather size of bios image */
     struct stat image_stat;
     if(fstat(fd, &image_stat) != 0)
     {
+        close(fd);
         diag_error(NULL, "failed to gather size of file at path \"%s\"\n", image_path);
+        return false;
     }
 
     size_t image_size = image_stat.st_size;
     if(image_size > memory->memory_size)
     {
+        close(fd);
         diag_error(NULL, "boot image is too large\n");
+        return false;
     }
 
     /* overmap the memory with the file in a dirty way tehe ^^ */
     void *mapped = mmap(memory->memory, image_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, 0);
     if(mapped == MAP_FAILED)
     {
+        close(fd);
         diag_error(NULL, "mapping boot image failed\n");
+        return false;
     }
 
     close(fd);
