@@ -124,7 +124,7 @@ bool assembler_emit_instruction_inc(const opcode_entry_t *opce,
     for(uint64_t i = 1; i < al->token_cnt; i++)
     {
         /* increment means each parameter, one opcode */
-        assembler_emit_opcode(al->inv, LA64_OPCODE_ADD);
+        assembler_emit_opcode(al->inv, kEmex64OpcodeADD);
 
         /* it must be a register */
         register_entry_t *reg = register_from_string(al->token[i].str);
@@ -159,7 +159,7 @@ bool assembler_emit_instruction_dec(const opcode_entry_t *opce,
     for(uint64_t i = 1; i < al->token_cnt; i++)
     {
         /* increment means each parameter, one opcode */
-        assembler_emit_opcode(al->inv, LA64_OPCODE_SUB);
+        assembler_emit_opcode(al->inv, kEmex64OpcodeSUB);
 
         /* it must be a register */
         register_entry_t *reg = register_from_string(al->token[i].str);
@@ -200,7 +200,7 @@ bool assembler_emit_instruction_clr(const opcode_entry_t *opce,
     for(uint64_t i = 1; i < al->token_cnt; i++)
     {
         /* increment means each parameter, one opcode */
-        assembler_emit_opcode(al->inv, LA64_OPCODE_MOV);
+        assembler_emit_opcode(al->inv, kEmex64OpcodeMOV);
 
         /* it must be a register */
         register_entry_t *reg = register_from_string(al->token[i].str);

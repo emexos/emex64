@@ -31,7 +31,7 @@
 
 #include <emex64lib/support/fdwalker.h>
 
-typedef enum assemblerLineType {
+enum assemblerLineType {
     kAssemblerLineTypeNone = 0b0000,
     kAssemblerLineTypeAssembly,
     kAssemblerLineTypeGlobalLabel,
@@ -39,7 +39,7 @@ typedef enum assemblerLineType {
     kAssemblerLineTypeSection,
     kAssemblerLineTypeSectionData,
     kAssemblerLineTypeMacroDef
-} assembler_line_type_t;
+};
 
 typedef struct assembler_token {
     char *str;
@@ -49,7 +49,7 @@ typedef struct assembler_token {
 
 typedef struct assembler_line {
     char *str;
-    assembler_line_type_t type;             /* type of line */
+    enum assemblerLineType type;            /* type of line */
     struct assembler_token *token;          /* subtokens */
     uint64_t token_cnt;                     /* count of subtokens */
     size_t line_num;                        /* line number in file */   

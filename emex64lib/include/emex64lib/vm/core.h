@@ -29,66 +29,66 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-/* opcode */
+enum kEmex64Opcode: uint8_t {
+    /* core operations */
+    kEmex64OpcodeHLT =      0b00000000,
+    kEmex64OpcodeNOP =      0b00000001,
 
-/* core operations */
-#define LA64_OPCODE_HLT             0b00000000
-#define LA64_OPCODE_NOP             0b00000001
+    /* data operations */
+    kEmex64OpcodeMOV =      0b00000010,
+    kEmex64OpcodeSWP =      0b00000011,
+    kEmex64OpcodeSWPZ =     0b00000100,
+    kEmex64OpcodePUSH =     0b00000101,
+    kEmex64OpcodePOP =      0b00000110,
+    kEmex64OpcodeLDB =      0b00000111,
+    kEmex64OpcodeLDW =      0b00001000,
+    kEmex64OpcodeLDD =      0b00001001,
+    kEmex64OpcodeLDQ =      0b00001010,
+    kEmex64OpcodeSTB =      0b00001011,
+    kEmex64OpcodeSTW =      0b00001100,
+    kEmex64OpcodeSTD =      0b00001101,
+    kEmex64OpcodeSTQ =      0b00001110,
 
-/* data operations */
-#define LA64_OPCODE_MOV             0b00000010
-#define LA64_OPCODE_SWP             0b00000011
-#define LA64_OPCODE_SWPZ            0b00000100
-#define LA64_OPCODE_PUSH            0b00000101
-#define LA64_OPCODE_POP             0b00000110
-#define LA64_OPCODE_LDB             0b00000111
-#define LA64_OPCODE_LDW             0b00001000
-#define LA64_OPCODE_LDD             0b00001001
-#define LA64_OPCODE_LDQ             0b00001010
-#define LA64_OPCODE_STB             0b00001011
-#define LA64_OPCODE_STW             0b00001100
-#define LA64_OPCODE_STD             0b00001101
-#define LA64_OPCODE_STQ             0b00001110
+    /* alu operations */
+    kEmex64OpcodeADD =      0b00001111,
+    kEmex64OpcodeSUB =      0b00010000,
+    kEmex64OpcodeMUL =      0b00010001,
+    kEmex64OpcodeDIV =      0b00010010,
+    kEmex64OpcodeIDIV =     0b00010011,
+    kEmex64OpcodeMOD =      0b00010100,
+    kEmex64OpcodeNOT =      0b00010101,
+    kEmex64OpcodeNEG =      0b00010110,
+    kEmex64OpcodeAND =      0b00010111,
+    kEmex64OpcodeOR  =      0b00011000,
+    kEmex64OpcodeXOR =      0b00011001,
+    kEmex64OpcodeSHR =      0b00011010,
+    kEmex64OpcodeSHL =      0b00011011,
+    kEmex64OpcodeSAR =      0b00011100,
+    kEmex64OpcodeROR =      0b00011101,
+    kEmex64OpcodeROL =      0b00011110,
+    kEmex64OpcodePDEP =     0b00011111,
+    kEmex64OpcodePEXT =     0b00100000,
+    kEmex64OpcodeBSWAPW =   0b00100001,
+    kEmex64OpcodeBSWAPD =   0b00100010,
+    kEmex64OpcodeBSWAPQ =   0b00100011,
 
-/* alu operations */
-#define LA64_OPCODE_ADD             0b00001111
-#define LA64_OPCODE_SUB             0b00010000
-#define LA64_OPCODE_MUL             0b00010001
-#define LA64_OPCODE_DIV             0b00010010
-#define LA64_OPCODE_IDIV            0b00010011
-#define LA64_OPCODE_MOD             0b00010100
-#define LA64_OPCODE_NOT             0b00010101
-#define LA64_OPCODE_NEG             0b00010110
-#define LA64_OPCODE_AND             0b00010111
-#define LA64_OPCODE_OR              0b00011000
-#define LA64_OPCODE_XOR             0b00011001
-#define LA64_OPCODE_SHR             0b00011010
-#define LA64_OPCODE_SHL             0b00011011
-#define LA64_OPCODE_SAR             0b00011100
-#define LA64_OPCODE_ROR             0b00011101
-#define LA64_OPCODE_ROL             0b00011110
-#define LA64_OPCODE_PDEP            0b00011111
-#define LA64_OPCODE_PEXT            0b00100000
-#define LA64_OPCODE_BSWAPW          0b00100001
-#define LA64_OPCODE_BSWAPD          0b00100010
-#define LA64_OPCODE_BSWAPQ          0b00100011
+    /* control flow operations */
+    kEmex64OpcodeB =        0b00100100,
+    kEmex64OpcodeCMP =      0b00100101,
+    kEmex64OpcodeBE =       0b00100110,
+    kEmex64OpcodeBNE =      0b00100111,
+    kEmex64OpcodeBLT =      0b00101000,
+    kEmex64OpcodeBGT =      0b00101001,
+    kEmex64OpcodeBLE =      0b00101010,
+    kEmex64OpcodeBGE =      0b00101011,
+    kEmex64OpcodeBZ =       0b00101100,
+    kEmex64OpcodeBNZ =      0b00101101,
+    kEmex64OpcodeBL =       0b00101110,
+    kEmex64OpcodeRET =      0b00101111,
+    kEmex64OpcodeIRET =     0b00110000,
 
-/* control flow operations */
-#define LA64_OPCODE_B               0b00100100
-#define LA64_OPCODE_CMP             0b00100101
-#define LA64_OPCODE_BE              0b00100110
-#define LA64_OPCODE_BNE             0b00100111
-#define LA64_OPCODE_BLT             0b00101000
-#define LA64_OPCODE_BGT             0b00101001
-#define LA64_OPCODE_BLE             0b00101010
-#define LA64_OPCODE_BGE             0b00101011
-#define LA64_OPCODE_BZ              0b00101100
-#define LA64_OPCODE_BNZ             0b00101101
-#define LA64_OPCODE_BL              0b00101110
-#define LA64_OPCODE_RET             0b00101111
-#define LA64_OPCODE_IRET            0b00110000
-
-#define LA64_OPCODE_MAX             LA64_OPCODE_IRET
+    kEmex64OpcodeMAX = kEmex64OpcodeIRET,
+};
 
 /* parameter modes */
 
@@ -284,7 +284,7 @@ typedef struct la64_core {
          * the opcode it self, so the cpu knows what to
          * execute.
          */
-        uint8_t opcode;
+        enum kEmex64Opcode opcode;
         emex64_opfunc_entry_t op;
 
         /*
