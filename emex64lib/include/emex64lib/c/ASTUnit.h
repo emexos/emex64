@@ -86,6 +86,17 @@ enum AccessKind: uint8_t {
     AccessKindArrow
 } AccessKind;
 
+enum DataType: uint8_t {
+    DataTypeUnsignedChar,       /* 8 bit unsigned */
+    DataTypeUnsignedShort,      /* 16 bit unsigned */
+    DataTypeUnsignedInteger,    /* 32 bit unsigned */
+    DataTypeUnsignedLong,       /* 64 bit unsigned */
+    DataTypeSignedChar,         /* 8 bit signed */
+    DataTypeSignedShort,        /* 16 bit signed */
+    DataTypeSignedInteger,      /* 32 bit signed (that is the standard type of int) */
+    DataTypeSignedLong          /* 64 bit signed */
+};
+
 struct ASTNode {
     enum ASTNodeKind kind;
 
@@ -113,7 +124,7 @@ struct ASTNode {
          */
         struct {
             char* name;
-            //struct DataType* type;
+            enum DataType type;
             struct ASTNode** parameters; 
             size_t parameter_count;
         } functionDeclaration;
@@ -127,7 +138,7 @@ struct ASTNode {
          */
         struct {
             char* name;
-            //struct DataType* type;
+            enum DataType type;
             struct ASTNode** parameters;
             size_t parameter_count;
             struct ASTNode** body;       
@@ -176,13 +187,13 @@ struct ASTNode {
 
         struct {
             char* name;
-            //struct DataType* type;
+            enum DataType type;
             struct ASTNode* init;
         } variableDeclaration;
 
         struct {
             char* name;
-            //struct DataType* type;
+            enum DataType type;
         } parameterDeclaration;
 
         /* leaf expressions */
@@ -221,7 +232,7 @@ struct ASTNode {
         } arrayIndex;
 
         struct {
-            //struct Type* target_type; I'm so so lazyyyy, data types are kinda hard to think about rn
+            enum DataType type;
             struct ASTNode* operand;
         } castExpression;
     };
