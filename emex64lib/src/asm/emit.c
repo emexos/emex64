@@ -407,7 +407,7 @@ bool assembler_emit(assembler_invocation_t *inv)
     reloc_table_entry_t *rtbe = inv->rtbe;
     while(rtbe != NULL)
     {
-        compiler_label_t *label = assembler_label_lookup(inv, rtbe->name);
+        assembler_label_t *label = assembler_label_lookup(inv, rtbe->name);
         if(label == NULL)
         {
             diag_error(rtbe->at_link, "label \"%s\" not found\n", rtbe->name);

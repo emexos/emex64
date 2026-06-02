@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     };
 
     /* allocating compiler invocation */
-    assembler_invocation_t *inv = assembler_invocation_alloc(output_path, options);
+    assembler_invocation_t *inv = assembler_invocation_alloc_with_options(output_path, options);
     if(inv == NULL)
     {
         diag_error(NULL, "something went terribly wrong\n");

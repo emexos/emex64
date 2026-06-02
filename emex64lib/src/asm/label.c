@@ -54,7 +54,7 @@ bool assembler_label_prealloc(assembler_invocation_t *inv)
     }
 
     /* allocating memory for those */
-    inv->label = calloc(inv->label_cnt, sizeof(compiler_label_t));
+    inv->label = calloc(inv->label_cnt, sizeof(assembler_label_t));
     inv->label_cnt = 0;
 
     if(inv->label == NULL)
@@ -65,8 +65,8 @@ bool assembler_label_prealloc(assembler_invocation_t *inv)
     return true;
 }
 
-compiler_label_t *assembler_label_lookup(assembler_invocation_t *inv,
-                                         const char *name)
+assembler_label_t *assembler_label_lookup(assembler_invocation_t *inv,
+                                          const char *name)
 {
     for(uint64_t i = 0; i < inv->label_cnt; i++)
     {
@@ -131,7 +131,7 @@ bool assembler_label_append(assembler_token_t *at)
     }
 
     /* checking for duplicated labels */
-    compiler_label_t *label = assembler_label_lookup(inv, name);
+    assembler_label_t *label = assembler_label_lookup(inv, name);
     if(label != NULL)
     {
         diag_note(label->at_link, "label \"%s\" already defined here\n", name);
@@ -148,7 +148,7 @@ bool assembler_label_append(assembler_token_t *at)
 bool assembler_label_insert_start_entry(assembler_invocation_t *inv)
 {
     /* finding start label */
-    compiler_label_t *label = assembler_label_lookup(inv, inv->options.start_entry_name);
+    assembler_label_t *label = assembler_label_lookup(inv, inv->options.start_entry_name);
     if(label == NULL)
     {
         diag_error(NULL, "\"%s\" label not found, cannot produce boot image\n", inv->options.start_entry_name);

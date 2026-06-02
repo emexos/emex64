@@ -61,7 +61,7 @@ typedef struct {
     char *name;                             /* name of resolved label */
     uint64_t addr;                          /* address of resolved label */
     struct assembler_token *at_link;        /* link to the originator of the label */
-} compiler_label_t;
+} assembler_label_t;
 
 typedef struct reloc_table_entry {
     char *name;                             /* resolved label name */

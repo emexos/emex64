@@ -34,6 +34,6 @@ bool assembler_label_prealloc(assembler_invocation_t *inv);
 bool assembler_label_append(assembler_token_t *at);
 bool assembler_label_insert_start_entry(assembler_invocation_t *inv);
 
-compiler_label_t *assembler_label_lookup(assembler_invocation_t *inv, const char *name);
+assembler_label_t *assembler_label_lookup(assembler_invocation_t *inv, const char *name);
 
 #endif /* EMEX64ASM_LABEL_H */
