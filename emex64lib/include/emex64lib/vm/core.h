@@ -216,41 +216,41 @@ enum kEmex64CompareFlag: uint8_t {
     kEmex64CompareFlagG =   0x4
 };
 
-/* exception flags */
+enum kEmex64Exception {
+    /*
+     * normal state, simply a marker to say nothing
+     * to trigger a interrupt for.
+     */
+    kEmex64ExceptionNone =              0b000,
 
-/*
- * normal state, simply a marker to say nothing
- * to trigger a interrupt for.
- */
-#define LA64_EXCEPTION_NONE              0b000
+    /*
+     * this exception means that a memory address was
+     * accessed inappropriately, which means memory
+     * if the cpu writes to memory that it doesnt have
+     * access to this exception is triggered.
+     */
+    kEmex64ExceptionBadAccess =         0b001,
 
-/*
- * this exception means that a memory address was
- * accessed inappropriately, which means memory
- * if the cpu writes to memory that it doesnt have
- * access to this exception is triggered.
- */
-#define LA64_EXCEPTION_BAD_ACCESS        0b001
+    /*
+     * this exception means that the current cpu state
+     * did not have the appropriate permissions to
+     * access a certain register for example.
+     */
+    kEmex64ExceptionPermission =        0b010,
 
-/*
- * this exception means that the current cpu state
- * did not have the appropriate permissions to
- * access a certain register for example.
- */
-#define LA64_EXCEPTION_PERMISSION        0b010
+    /*
+     * this exception means that the cpu regocnised a
+     * instruction that was not valid was being tried
+     * to decode.
+     */
+    kEmex64ExceptionBadInstruction =    0b011,
 
-/*
- * this exception means that the cpu regocnised a
- * instruction that was not valid was being tried
- * to decode.
- */
-#define LA64_EXCEPTION_BAD_INSTRUCTION   0b011
-
-/*
- * the alu tried to perform illegal math operations
- * like for example N / 0 or N % 0.
- */
-#define LA64_EXCEPTION_BAD_ARITHMETIC    0b100
+    /*
+     * the alu tried to perform illegal math operations
+     * like for example N / 0 or N % 0.
+     */
+    kEmex64ExceptionBadArithmetic =     0b100,
+};
 
 typedef struct la64_core la64_core_t;
 

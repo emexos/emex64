@@ -131,7 +131,7 @@ void la64_push(la64_core_t *core, uint64_t value)
 {
     if(!la64_memory_write(core, core->rl[kEmex64RegisterSP], value, sizeof(uint64_t)))
     {
-        core->rl[kEmex64RegisterCR2] = LA64_EXCEPTION_BAD_ACCESS;
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
         return;
     }
 
@@ -146,7 +146,7 @@ uint64_t la64_pop(la64_core_t *core)
 
     if(!la64_memory_read(core, core->rl[kEmex64RegisterSP], sizeof(uint64_t), &value))
     {
-        core->rl[kEmex64RegisterCR2] = LA64_EXCEPTION_BAD_ACCESS;
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
         return 0;
     }
 
@@ -238,7 +238,7 @@ void la64_op_iret(la64_core_t *core)
 
     if(!core->in_interrupt)
     {
-        core->rl[kEmex64RegisterCR2] = LA64_EXCEPTION_BAD_INSTRUCTION;
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadInstruction;
         return;
     }
 
