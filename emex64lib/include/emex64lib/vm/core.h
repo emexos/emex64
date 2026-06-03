@@ -91,13 +91,27 @@ enum kEmex64Opcode: uint8_t {
 };
 
 enum kEmex64ParameterCoding: uint8_t {
-    kEmex64ParameterCodingEnd   = 0b000,
-    kEmex64ParameterCodingReg   = 0b001,
-    kEmex64ParameterCodingImm8  = 0b010,
-    kEmex64ParameterCodingImm16 = 0b011,
-    kEmex64ParameterCodingImm32 = 0b100,
-    kEmex64ParameterCodingImm64 = 0b101
-    /* leaving 0b110 and 0b111 open for later additions */
+    /*
+     * defines the end of a instruction in case the
+     * instruction can have such a end coding, like
+     * dynamic instructions.
+     */
+    kEmex64ParameterCodingEnd =     0b000,
+
+    kEmex64ParameterCodingReg =     0b001,
+    kEmex64ParameterCodingImm5 =    0b010,
+    kEmex64ParameterCodingImm8  =   0b011,
+    kEmex64ParameterCodingImm16 =   0b100,
+    kEmex64ParameterCodingImm32 =   0b101,
+    kEmex64ParameterCodingImm64 =   0b110,
+
+    /*
+     * this means the decoder has to first skip until
+     * the next boundary before it can safely read the
+     * data, this coding has been added for compatibility
+     * for dynamic symbol relocation.
+     */
+    kEmex64ParameterCodingAddr64 =  0b111
 };
 
 enum kEmex64Register: uint8_t {

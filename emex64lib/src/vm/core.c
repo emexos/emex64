@@ -173,6 +173,13 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
                 core->op.param[core->op.param_cnt++] = &(core->rl[rcnt]);
                 break;
             }
+            case kEmex64ParameterCodingImm5:
+            {
+                core->op.imm[core->op.param_cnt] = bitwalker_read(&bw, 5);
+                core->op.param[core->op.param_cnt] = &(core->op.imm[core->op.param_cnt]);
+                core->op.param_cnt++;
+                break;
+            }
             case kEmex64ParameterCodingImm8:
             case kEmex64ParameterCodingImm16:
             case kEmex64ParameterCodingImm32:
@@ -184,7 +191,14 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
                 core->op.param_cnt++;
                 break;
             }
+            case kEmex64ParameterCodingAddr64:
+                bitwalker_align_byte(&bw);
+                core->op.imm[core->op.param_cnt] = bitwalker_read(&bw, 64);
+                core->op.param[core->op.param_cnt] = &(core->op.imm[core->op.param_cnt]);
+                core->op.param_cnt++;
+                break;
             default:
+                /* unknown mode */
                 core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadInstruction;
                 reached_end = true;
                 return;
