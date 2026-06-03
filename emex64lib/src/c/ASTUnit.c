@@ -22,4 +22,21 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <emex64lib/c/ASTUnit.h>
+
+struct ASTNode *astnode_create_translation_unit(void)
+{
+    struct ASTNode *node = malloc(sizeof(struct ASTNode));
+    if(node == NULL)
+    {
+        return NULL;
+    }
+
+    node->kind = ASTNodeKindTranslationUnit;
+    node->translationUnit.declarations = NULL;
+
+    return node;
+}

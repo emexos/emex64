@@ -108,8 +108,7 @@ struct ASTNode {
          * down to ASM.
          */
         struct {
-            struct ASTNode** declarations;
-            size_t declaration_count;
+            struct ASTNode* declarations;
         } translationUnit;
 
         /*
@@ -125,8 +124,7 @@ struct ASTNode {
         struct {
             char* name;
             enum DataType type;
-            struct ASTNode** parameters; 
-            size_t parameter_count;
+            struct ASTNode* parameters; 
         } functionDeclaration;
 
         /*
@@ -139,24 +137,20 @@ struct ASTNode {
         struct {
             char* name;
             enum DataType type;
-            struct ASTNode** parameters;
-            size_t parameter_count;
-            struct ASTNode** body;       
-            size_t body_count;
+            struct ASTNode* parameters;
+            struct ASTNode* body;
         } functionDefinition;
 
         /* bruh, its a declaration of a structure */
         struct {
             char* name;
-            struct ASTNode** members;       /* hopefully all variable declaration nodes lol */
-            size_t member_count;
+            struct ASTNode* members;       /* hopefully all variable declaration nodes lol */
         } structDeclaration;
 
         /* statements */
 
         struct {
-            struct ASTNode** body;
-            size_t body_count;
+            struct ASTNode* body;
         } compoundStatement;
 
         struct ASTNodeExpressionStatement {
@@ -236,6 +230,11 @@ struct ASTNode {
             struct ASTNode* operand;
         } castExpression;
     };
+
+    struct ASTNode *prev;
+    struct ASTNode *next;
 };
+
+struct ASTNode *astnode_create_translation_unit(void);
 
 #endif /* EMEX64C_ASTUNIT_H */
