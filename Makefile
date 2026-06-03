@@ -6,18 +6,18 @@ all: compile
 build/.build:
 	mkdir -p build
 	cd build; \
-		cmake .. -G Ninja
+		cmake ..
 	touch build/.build
 
 # Builds the targets
 compile: build/.build
 	cd build; \
-		ninja
+		make
 
 # And install
 install: compile
 	cd build; \
-		sudo ninja install
+		sudo make install
 
 clean:
 	rm -rf build

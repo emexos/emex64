@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(emex64lib
+project(emex64
     VERSION 1.0.0
     LANGUAGES C
 )
@@ -29,7 +29,7 @@ else()
     set(LIB_TYPE SHARED)
 endif()
 
-add_library(emex64lib ${LIB_TYPE}
+add_library(emex64 ${LIB_TYPE}
     # Support
 
     src/support/bitwalker.c
@@ -77,39 +77,39 @@ add_library(emex64lib ${LIB_TYPE}
     src/c/ASTUnit.c
 )
 
-target_compile_definitions(emex64lib PRIVATE
+target_compile_definitions(emex64 PRIVATE
     EMEX64VM_DEVICE_DISPLAY=$<BOOL:${EMEX64VM_DEVICE_DISPLAY}>
 )
 
-target_include_directories(emex64lib
+target_include_directories(emex64
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-target_compile_features(emex64lib PUBLIC c_std_23)
+target_compile_features(emex64 PUBLIC c_std_23)
 
 if (MSVC)
-    target_compile_options(emex64lib PRIVATE /W4)
+    target_compile_options(emex64 PRIVATE /W4)
 else()
-    target_compile_options(emex64lib PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
+    target_compile_options(emex64 PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
 
-target_link_libraries(emex64lib
+target_link_libraries(emex64
     PRIVATE
         Threads::Threads
 )
 
 if(EMEX64VM_DEVICE_DISPLAY)
     if(UNIX AND NOT APPLE)
-        target_link_libraries(emex64lib
+        target_link_libraries(emex64
             PRIVATE
                 glfw
                 GLEW::GLEW
                 OpenGL::GL
         )
     elseif(APPLE)
-        target_sources(emex64lib
+        target_sources(emex64
             PRIVATE
                 src/vm/device/display.m
         )
@@ -117,7 +117,7 @@ if(EMEX64VM_DEVICE_DISPLAY)
         find_library(COCOA_FRAMEWORK Cocoa REQUIRED)
         find_library(OPENGL_FRAMEWORK OpenGL REQUIRED)
 
-        target_link_libraries(emex64lib
+        target_link_libraries(emex64
             PRIVATE
                 ${COCOA_FRAMEWORK}
                 ${OPENGL_FRAMEWORK}
@@ -130,13 +130,13 @@ if(EMEX64VM_DEVICE_DISPLAY)
 endif()
 
 if(APPLE)
-    option(EMEX64LIB_STATIC "Link statically against emex64lib" OFF)
+    option(EMEX64LIB_STATIC "Link statically against emex64" OFF)
 else()
-    option(EMEX64LIB_STATIC "Link statically against emex64lib" ON)
+    option(EMEX64LIB_STATIC "Link statically against emex64" ON)
 endif()
 
 if(NOT EMEX64LIB_STATIC)
-    install(TARGETS emex64lib
+    install(TARGETS emex64
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
     )

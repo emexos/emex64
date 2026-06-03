@@ -236,6 +236,7 @@ struct ASTNode {
 };
 
 void astnode_unlink(struct ASTNode *node);
+void astnode_link(struct ASTNode *node, struct ASTNode *new);
 
 struct ASTNode *astnode_create_translation_unit(void);
 

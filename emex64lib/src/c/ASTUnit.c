@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include <emex64lib/c/ASTUnit.h>
 
@@ -135,6 +136,18 @@ void astnode_unlink(struct ASTNode *node)
     }
 
     free(node);
+}
+
+void astnode_link(struct ASTNode *node,
+                  struct ASTNode *new)
+{
+    if(node->next != NULL)
+    {
+        node->next->prev = new;
+    }
+
+    new->prev = node;
+    node->next = new;
 }
 
 struct ASTNode *astnode_create_translation_unit(void)
