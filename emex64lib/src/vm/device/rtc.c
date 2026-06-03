@@ -49,11 +49,10 @@ uint64_t la64_rtc_read(la64_core_t *core,
         case RTC_REG_MONTH:
             return t->tm_mon + 1;
         case RTC_REG_YEAR:
-            return t->tm_year + 1900;
+            /* only last two digits */
+            return (uint64_t)((t->tm_year + 1900) % 100);
         case RTC_REG_WEEKDAY:
             return t->tm_wday;
-        case RTC_REG_UNIX:
-            return (uint64_t)now;
         default:
             return 0;
     }

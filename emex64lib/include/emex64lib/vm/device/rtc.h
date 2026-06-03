@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 #define LA64_RTC_BASE       0x1FE00200
-#define LA64_RTC_SIZE       0x28
+#define LA64_RTC_SIZE       0x20
 
 #define RTC_REG_SECONDS     0x00
 #define RTC_REG_MINUTES     0x04
@@ -37,7 +37,6 @@
 #define RTC_REG_MONTH       0x10
 #define RTC_REG_YEAR        0x14
 #define RTC_REG_WEEKDAY     0x18
-#define RTC_REG_UNIX        0x20
 
 typedef struct la64_core la64_core_t;
 
