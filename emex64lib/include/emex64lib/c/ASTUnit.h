@@ -173,7 +173,7 @@ struct ASTNode {
 
         struct {
             struct ASTNode* condition;      /* hopefully an expression */
-            struct ASTNode* body;           /* hopefully an (usually a compound statement) */
+            struct ASTNode* body;           /* hopefully an compound statement */
         } whileStatement;
 
         struct {

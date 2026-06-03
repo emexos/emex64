@@ -31,8 +31,8 @@
 
 #include <emex64lib/support/fdwalker.h>
 
-enum assemblerLineType {
-    kAssemblerLineTypeNone = 0b0000,
+enum kAssemblerLineType: uint8_t {
+    kAssemblerLineTypeNone,
     kAssemblerLineTypeAssembly,
     kAssemblerLineTypeGlobalLabel,
     kAssemblerLineTypeLocalLabel,
@@ -49,7 +49,7 @@ typedef struct assembler_token {
 
 typedef struct assembler_line {
     char *str;
-    enum assemblerLineType type;            /* type of line */
+    enum kAssemblerLineType type;           /* type of line */
     struct assembler_token *token;          /* subtokens */
     uint64_t token_cnt;                     /* count of subtokens */
     size_t line_num;                        /* line number in file */   
