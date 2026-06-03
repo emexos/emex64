@@ -44,12 +44,16 @@
     {                                                           \
         case 1: /* 8 bit */                                     \
             *(uint8_t*)(((uint8_t*)mapping) + offset) = value;  \
+            break;                                              \
         case 2: /* 16 bit */                                    \
             *(uint16_t*)(((uint8_t*)mapping) + offset) = value; \
+            break;                                              \
         case 4: /* 32 bit */                                    \
             *(uint32_t*)(((uint8_t*)mapping) + offset) = value; \
+            break;                                              \
         case 8: /* 64 bit */                                    \
             *(uint64_t*)(((uint8_t*)mapping) + offset) = value; \
+            break;                                              \
     }
 
 #define LA64_MEMORY_READ_HELPER(mapping, offset, size, out_value)       \
