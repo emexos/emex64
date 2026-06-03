@@ -140,19 +140,21 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
     bitwalker_init_read(&bw, iptr, 256, BW_LITTLE_ENDIAN);
 
     /* getting opcode */
-    core->op.opcode = (uint8_t)bitwalker_read(&bw, 8);
-    if(core->op.opcode > kEmex64OpcodeMAX)
+    uint8_t opcode = (uint8_t)bitwalker_read(&bw, 8);
+    if(opcode > kEmex64OpcodeMAX)
     {
         core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadInstruction;
         return;
     }
 
-    core->op.op = opfunc_table[core->op.opcode];
+    core->op.opcode = opcode;
+    core->op.op = opfunc_table[opcode];
 
     /* parsing loop */
-    core->op.param_cnt = 0;
     bool reached_end = false;
-    for(uint8_t i = 0; i < core->op.op.maxargs && !reached_end; i++)
+    uint8_t maxarg = core->op.op.maxargs;
+    uint8_t i;
+    for(i = 0; i < maxarg && !reached_end; i++)
     {
         /* switch through modes */
         uint8_t mode = (uint8_t)bitwalker_read(&bw, 3);
@@ -160,7 +162,8 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
         {
             case kEmex64ParameterCodingEnd:
                 reached_end = true;
-                break;
+                i--;
+                continue;
             case kEmex64ParameterCodingReg:
             {
                 uint8_t rcnt = (uint8_t)bitwalker_read(&bw, 5);
@@ -170,14 +173,13 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
                     return;
                 }
 
-                core->op.param[core->op.param_cnt++] = &(core->rl[rcnt]);
+                core->op.param[i] = &(core->rl[rcnt]);
                 break;
             }
             case kEmex64ParameterCodingImm5:
             {
-                core->op.imm[core->op.param_cnt] = bitwalker_read(&bw, 5);
-                core->op.param[core->op.param_cnt] = &(core->op.imm[core->op.param_cnt]);
-                core->op.param_cnt++;
+                core->op.imm[i] = bitwalker_read(&bw, 5);
+                core->op.param[i] = &(core->op.imm[i]);
                 break;
             }
             case kEmex64ParameterCodingImm8:
@@ -186,16 +188,14 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
             case kEmex64ParameterCodingImm64:
             {
                 uint8_t bits = 1u << (((mode - kEmex64ParameterCodingImm8) + 1) + 2);
-                core->op.imm[core->op.param_cnt] = bitwalker_read(&bw, bits);
-                core->op.param[core->op.param_cnt] = &(core->op.imm[core->op.param_cnt]);
-                core->op.param_cnt++;
+                core->op.imm[i] = bitwalker_read(&bw, bits);
+                core->op.param[i] = &(core->op.imm[i]);
                 break;
             }
             case kEmex64ParameterCodingAddr64:
                 bitwalker_align_byte(&bw);
-                core->op.imm[core->op.param_cnt] = bitwalker_read(&bw, 64);
-                core->op.param[core->op.param_cnt] = &(core->op.imm[core->op.param_cnt]);
-                core->op.param_cnt++;
+                core->op.imm[i] = bitwalker_read(&bw, 64);
+                core->op.param[i] = &(core->op.imm[i]);
                 break;
             default:
                 /* unknown mode */
@@ -205,7 +205,12 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
         }
     }
 
-    /* finding out how many steps the the program counter has to jump */
+    /*
+     * now we know all about this instruction, the
+     * lenght and the amount of parameters, this is
+     * very very very good.
+     */
+    core->op.param_cnt = i;
     core->op.ilen = bitwalker_bytes_used(&bw);
 
     return;
