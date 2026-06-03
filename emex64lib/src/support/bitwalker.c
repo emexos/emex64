@@ -93,11 +93,7 @@ int bitwalker_write(bitwalker_t *bw,
                     uint64_t value,
                     uint8_t num_bits)
 {
-    if(num_bits == 0 || num_bits > 64)
-    {
-        return -1;
-    }
-    else if(bw->byte_pos >= bw->capacity)
+    if(num_bits == 0 || num_bits > 64 || bw->byte_pos >= bw->capacity)
     {
         return -1;
     }
@@ -143,11 +139,7 @@ int bitwalker_write(bitwalker_t *bw,
 uint64_t bitwalker_read(bitwalker_t *bw,
                         uint8_t num_bits)
 {
-    if(num_bits == 0 || num_bits > 64)
-    {
-        return 0;
-    }
-    else if(bw->byte_pos >= bw->capacity)
+    if(num_bits == 0 || num_bits > 64 || bw->byte_pos >= bw->capacity)
     {
         return 0;
     }

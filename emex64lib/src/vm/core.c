@@ -143,7 +143,7 @@ static void la64_core_decode_instruction_at_pc(la64_core_t *core)
     core->op.opcode = (uint8_t)bitwalker_read(&bw, 8);
     if(core->op.opcode > kEmex64OpcodeMAX)
     {
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadInstruction;
         return;
     }
 
