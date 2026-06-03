@@ -119,7 +119,7 @@ bool assembler_code_parse(assembler_invocation_t *inv,
     for(unsigned long i = 0; i < inv->line_cnt; i++)
     {
         /* using cmptok in first pass to get token count */
-        for(cmptok_return_t token = cmptok(inv->line[i].str); token.token != NULL;)
+        for(cmptok_token_t token = cmptok(inv->line[i].str); token.token != NULL;)
         {
             /*
              * until this is not null i will not move
@@ -139,10 +139,10 @@ bool assembler_code_parse(assembler_invocation_t *inv,
          * and over again, is this a carousell or
          * why am I getting ill rn.
          */
-        for(cmptok_return_t token = cmptok(inv->line[i].str); token.token != NULL;)
+        for(cmptok_token_t token = cmptok(inv->line[i].str); token.token != NULL;)
         {
             inv->line[i].token[inv->line[i].token_cnt].str = strdup(token.token);
-            inv->line[i].token[inv->line[i].token_cnt].column_num = token.pos + 1;
+            inv->line[i].token[inv->line[i].token_cnt].column_num = token.column + 1;
             inv->line[i].token[inv->line[i].token_cnt++].al = &(inv->line[i]);
             token = cmptok(NULL);
         }

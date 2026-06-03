@@ -51,9 +51,9 @@ enum kCmptokTokenMode: uint8_t {
 
 typedef struct {
     const char *token;                          /* token that gets returned (is only valid until next cmptok(1) call from the same thread as before */
-    size_t pos;                                 /* column position*/
-} cmptok_return_t;
+    size_t column;                              /* column position */
+} cmptok_token_t;
 
-cmptok_return_t cmptok(const char *token);
+cmptok_token_t cmptok(const char *token);
 
 #endif /* EMEX64ASM_CMPTOK_H */

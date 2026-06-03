@@ -28,9 +28,9 @@
 
 #include <emex64lib/asm/cmptok.h>
 
-_Thread_local const char *ltokptr;
-_Thread_local char otoken[CMPTOK_LENGHT_MAX];
-_Thread_local size_t pos;
+_Thread_local static const char *ltokptr;
+_Thread_local static char otoken[CMPTOK_LENGHT_MAX];
+_Thread_local static size_t column;
 
 static inline void cmptok_skip_triggers(void)
 {
@@ -41,7 +41,7 @@ static inline void cmptok_skip_triggers(void)
            ltokptr[0] == '\t')
         {
             ltokptr++;
-            pos++;
+            column++;
             continue;
         }
 
@@ -50,7 +50,7 @@ static inline void cmptok_skip_triggers(void)
             while(ltokptr[0] != '\0')
             {
                 ltokptr++;
-                pos++;
+                column++;
             }
             return;
         }
@@ -63,30 +63,29 @@ static inline void cmptok_append(unsigned short *otoken_pos)
 {
     otoken[(*otoken_pos)++] = ltokptr[0];
     ltokptr++;
-    pos++;
+    column++;
 }
 
-cmptok_return_t cmptok(const char *token)
+cmptok_token_t cmptok(const char *token)
 {
     /* null pointer check */
     if(token != NULL)
     {
         /* if token is passed then this is the beginning of something we are meant to parse */
         ltokptr = token;
-        pos = 0;
+        column = 0;
     }
     else if(ltokptr == NULL || ltokptr[0] == '\0')
     {
         /* if ltokptr is nullified this or nullterminated then we shall not continue, there is nothing to tokenize */
-        cmptok_return_t retval = { .token = NULL, .pos = 0 };
-        return retval;
+        return (cmptok_token_t){ .token = NULL, .column = 0 };
     }
 
     /* skip the junk in front of us */
     cmptok_skip_triggers();
 
-    cmptok_return_t retval;
-    retval.pos = pos;
+    cmptok_token_t retval;
+    retval.column = column;
 
     /* perform copy */
     unsigned short a = 0;
@@ -173,7 +172,7 @@ skip_break_out:
 
         /* incrementing */
         ltokptr++;
-        pos++;
+        column++;
     }
 
     otoken[a] = '\0';
