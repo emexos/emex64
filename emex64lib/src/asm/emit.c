@@ -272,6 +272,7 @@ bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
         if(pr.type == emexParserValueTypeString)
         {
             fdwalker_write(al->inv->fdwalker, kEmex64ParameterCodingAddr64, 3);
+            fdwalker_align_byte(al->inv->fdwalker);
 
             /* the label is either local or global */
             char *label = NULL;
@@ -294,8 +295,6 @@ bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
                 rtbe->next = al->inv->rtbe;
             }
             al->inv->rtbe = rtbe;
-
-            fdwalker_align_byte(al->inv->fdwalker);
             rtbe->name = label;
             rtbe->byte_pos = al->inv->fdwalker->byte_pos;
             rtbe->at_link = &(al->token[i]);
