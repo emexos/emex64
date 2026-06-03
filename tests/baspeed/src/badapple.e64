@@ -31,22 +31,10 @@
 
 %define% VIDEO_BASE __la64_exec_img_end
 
-%define% TIMER_CTRL    0x1FE00100
-%define% TIMER_COUNT   0x1FE00108
-%define% TIMER_COMPARE 0x1FE00110
-%define% TIMER_STATUS  0x1FE00118
-%define% TIMER_FREQ    0x1FE00120
-
 _timer_handler:
     iret
 
 _main:
-    bl _interrupt_register_handler, IRQ_TIMER, _timer_handler
-
-    ldq r0, TIMER_FREQ
-    div r0, 60
-    stq TIMER_COMPARE, r0
-
     stb FB_ENABLED, 1                   ; enables the framebuffer
 .video_entry:
     add r1, FB_FRAMEBUFFER, 0x10000     ; calculating the framebuffer end
@@ -55,10 +43,6 @@ _main:
     mov r2, VIDEO_BASE
     mov r5, 0
 .video_reloop:
-    stq TIMER_CTRL, 0x7
-    hlt
-    stq TIMER_CTRL, 0x0
-    stq TIMER_COUNT, 0
     cmp r5, 6520
     bgt .video_rereloop
     mov r0, FB_FRAMEBUFFER
@@ -78,7 +62,5 @@ _main:
     ret
 
 _start:
-    bl _pmm_init
-    bl _interrupt_init
     bl _main
     stb PLATFORM_PWR, 0

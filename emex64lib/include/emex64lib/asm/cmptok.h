@@ -25,20 +25,29 @@
 #ifndef EMEX64ASM_CMPTOK_H
 #define EMEX64ASM_CMPTOK_H
 
+#include <stdint.h>
+
 #define CMPTOK_LENGHT_MAX               2048    /* if anyone comes close to that size, bro pls fix your variable naming style O.O */
 
-#define CMPTOK_TOKEN_MODE_NONE          0b00    /* the nothing mode */
-#define CMPTOK_TOKEN_MODE_STRING        0b01    /* string mode, means it parses the next characters as a character buffer sequence */
+enum kCmptokTokenMode: uint8_t {
+    /* the nothing mode */
+    kCmptokTokenModeNone,
 
-/*
- * character mode, means it parses the next characters as
- * a character, if its not a valid character next steps in
- * compilation will fail, but thats not responsibility
- * of this parser!
- */
-#define CMPTOK_TOKEN_MODE_CHAR          0b10
+    /*
+     * string mode, means it parses the
+     * next characters as a character
+     * buffer sequence
+     */
+    kCmptokTokenModeString,
 
-#include <stdint.h>
+    /*
+     * character mode, means it parses the next characters as
+     * a character, if its not a valid character next steps in
+     * compilation will fail, but thats not responsibility
+     * of this parser!
+     */
+    kCmptokTokenModeCharacter
+};
 
 typedef struct {
     const char *token;                          /* token that gets returned (is only valid until next cmptok(1) call from the same thread as before */

@@ -90,13 +90,13 @@ cmptok_return_t cmptok(const char *token)
 
     /* perform copy */
     unsigned short a = 0;
-    unsigned char token_mode = CMPTOK_TOKEN_MODE_NONE;
+    unsigned char token_mode = kCmptokTokenModeNone;
     while(a < CMPTOK_LENGHT_MAX - 1)
     {
         /* processing string */
         switch(token_mode)
         {
-            case CMPTOK_TOKEN_MODE_NONE:
+            case kCmptokTokenModeNone:
                 switch(ltokptr[0])
                 {
                     /* handling what shall be skipped and not tokenized */
@@ -108,18 +108,18 @@ cmptok_return_t cmptok(const char *token)
                     
                     /* handling string beginnings */
                     case '"':
-                        token_mode = CMPTOK_TOKEN_MODE_STRING;
+                        token_mode = kCmptokTokenModeString;
                         break;
                     
                     /* handling character beginnings */
                     case '\'':
-                        token_mode = CMPTOK_TOKEN_MODE_CHAR;
+                        token_mode = kCmptokTokenModeCharacter;
                         break;
                     default:
                         break;
                 }
                 break;
-            case CMPTOK_TOKEN_MODE_STRING:
+            case kCmptokTokenModeString:
                 switch(ltokptr[0])
                 {
                     /* handling string ends */
@@ -136,7 +136,7 @@ cmptok_return_t cmptok(const char *token)
                         break;
                 }
                 break;
-            case CMPTOK_TOKEN_MODE_CHAR:
+            case kCmptokTokenModeCharacter:
                 switch(ltokptr[0])
                 {
                     /* handling character ends */
