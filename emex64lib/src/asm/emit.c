@@ -54,6 +54,13 @@ void assembler_emit_register(assembler_invocation_t *inv,
     fdwalker_write(inv->fdwalker, reg, 5);
 }
 
+void assembler_emit_imm5(assembler_invocation_t *inv,
+                         uint8_t imm)
+{
+    fdwalker_write(inv->fdwalker, kEmex64ParameterCodingImm5, 3);
+    fdwalker_write(inv->fdwalker, imm, 5);
+}
+
 void assembler_emit_imm8(assembler_invocation_t *inv,
                          uint8_t imm)
 {
@@ -85,7 +92,11 @@ void assembler_emit_imm64(assembler_invocation_t *inv,
 void assembler_emit_imm(assembler_invocation_t *inv,
                         uint64_t imm)
 {
-    if(imm <= 0xFF)
+    if(imm <= 0x1F)
+    {
+        assembler_emit_imm5(inv, (uint8_t)imm);
+    }
+    else if(imm <= 0xFF)
     {
         assembler_emit_imm8(inv, (uint8_t)imm);
     }
@@ -136,7 +147,7 @@ bool assembler_emit_instruction_inc(const opcode_entry_t *opce,
 
         /* emit parameters */
         assembler_emit_register(al->inv, reg->reg);
-        assembler_emit_imm8(al->inv, 1);
+        assembler_emit_imm(al->inv, 1);
         assembler_emit_end(al->inv);
         fdwalker_align_byte(al->inv->fdwalker);
     }
@@ -172,7 +183,7 @@ bool assembler_emit_instruction_dec(const opcode_entry_t *opce,
 
         /* emit parameters */
         assembler_emit_register(al->inv, reg->reg);
-        assembler_emit_imm8(al->inv, 1);
+        assembler_emit_imm(al->inv, 1);
         assembler_emit_end(al->inv);
         fdwalker_align_byte(al->inv->fdwalker);
     }
@@ -213,7 +224,7 @@ bool assembler_emit_instruction_clr(const opcode_entry_t *opce,
 
         /* emit parameters */
         assembler_emit_register(al->inv, reg->reg);
-        assembler_emit_imm8(al->inv, 0);
+        assembler_emit_imm(al->inv, 0);
         fdwalker_align_byte(al->inv->fdwalker);
     }
 

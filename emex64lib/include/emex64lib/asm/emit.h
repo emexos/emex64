@@ -43,6 +43,7 @@ void assembler_emit_opcode(assembler_invocation_t *inv, uint8_t op);
 void assembler_emit_register(assembler_invocation_t *inv, uint8_t reg);
 
 /* intermediate emit */
+void assembler_emit_imm5(assembler_invocation_t *inv, uint8_t imm);
 void assembler_emit_imm8(assembler_invocation_t *inv, uint8_t imm);
 void assembler_emit_imm16(assembler_invocation_t *inv, uint16_t imm);
 void assembler_emit_imm32(assembler_invocation_t *inv, uint32_t imm);
