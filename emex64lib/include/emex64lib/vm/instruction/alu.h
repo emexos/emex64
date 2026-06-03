@@ -49,5 +49,7 @@ void la64_op_pext(la64_core_t *core);
 void la64_op_bswapw(la64_core_t *core);
 void la64_op_bswapd(la64_core_t *core);
 void la64_op_bswapq(la64_core_t *core);
+void la64_op_inc(la64_core_t *core);
+void la64_op_dec(la64_core_t *core);
 
 #endif /* EMEX64VM_INSTRUCTION_ALU_H */

@@ -88,6 +88,8 @@ emex64_opfunc_entry_t opfunc_table[] = {
     [kEmex64OpcodeBSWAPW] = { .func = la64_op_bswapw, .maxargs = 1 },
     [kEmex64OpcodeBSWAPD] = { .func = la64_op_bswapd, .maxargs = 1 },
     [kEmex64OpcodeBSWAPQ] = { .func = la64_op_bswapq, .maxargs = 1 },
+    [kEmex64OpcodeINC] = { .func = la64_op_inc, .maxargs = 32 },
+    [kEmex64OpcodeDEC] = { .func = la64_op_dec, .maxargs = 32 },
 
     /* control flow operations */
     [kEmex64OpcodeB] = { .func = la64_op_b, .maxargs = 1 },

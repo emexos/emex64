@@ -274,3 +274,29 @@ void la64_op_bswapq(la64_core_t *core)
     la64_instr_termcond(core->op.param_cnt != 1);
     *core->op.param[0] = __builtin_bswap64(*core->op.param[0]);
 }
+
+void la64_op_inc(la64_core_t *core)
+{
+    uint8_t param_cnt = core->op.param_cnt;
+    uint64_t **param_list = core->op.param;
+
+    la64_instr_termcond(param_cnt != 1);
+
+    for(uint8_t i = 0; i < param_cnt; i++)
+    {
+        (*param_list[i])++;
+    }
+}
+
+void la64_op_dec(la64_core_t *core)
+{
+    uint8_t param_cnt = core->op.param_cnt;
+    uint64_t **param_list = core->op.param;
+
+    la64_instr_termcond(param_cnt != 1);
+
+    for(uint8_t i = 0; i < param_cnt; i++)
+    {
+        (*param_list[i])--;
+    }
+}

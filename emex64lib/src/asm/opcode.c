@@ -70,6 +70,8 @@ const opcode_entry_t opcode_table[] = {
     { .name = "bswapw", .opcode = kEmex64OpcodeBSWAPW,      .minargs = 1, .maxargs = 1,  .argmask = 0b10000000000000000000000000000000, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
     { .name = "bswapd", .opcode = kEmex64OpcodeBSWAPD,      .minargs = 1, .maxargs = 1,  .argmask = 0b10000000000000000000000000000000, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
     { .name = "bswapq", .opcode = kEmex64OpcodeBSWAPQ,      .minargs = 1, .maxargs = 1,  .argmask = 0b10000000000000000000000000000000, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
+    { .name = "inc",    .opcode = kEmex64OpcodeINC,         .minargs = 1, .maxargs = 32, .argmask = 0b11111111111111111111111111111111, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
+    { .name = "dec",    .opcode = kEmex64OpcodeDEC,         .minargs = 1, .maxargs = 32, .argmask = 0b11111111111111111111111111111111, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
 
     /* contol flow operations */
     { .name = "b",      .opcode = kEmex64OpcodeB,           .minargs = 1, .maxargs = 1,  .argmask = 0b00000000000000000000000000000000, .dnstr = NULL, .handler = assembler_emit_instruction_generic },
@@ -98,8 +100,6 @@ const opcode_entry_t opcode_table[] = {
     { .name = "jnz",    .opcode = kEmex64OpcodeBNZ,         .minargs = 2, .maxargs = 2,  .argmask = 0b00000000000000000000000000000000, .dnstr = "use \"bnz\" instead", .handler = assembler_emit_instruction_generic },
 
     /* pseudo opcodes */
-    { .name = "inc",    .opcode = kEmex64OpcodeHLT,         .minargs = 1, .maxargs = 32, .argmask = 0b11111111111111111111111111111111, .dnstr = NULL, .handler = assembler_emit_instruction_inc },
-    { .name = "dec",    .opcode = kEmex64OpcodeHLT,         .minargs = 1, .maxargs = 32, .argmask = 0b11111111111111111111111111111111, .dnstr = NULL, .handler = assembler_emit_instruction_dec },
     { .name = "clr",    .opcode = kEmex64OpcodeHLT,         .minargs = 1, .maxargs = 32, .argmask = 0b11111111111111111111111111111111, .dnstr = NULL, .handler = assembler_emit_instruction_clr },
 };
 
