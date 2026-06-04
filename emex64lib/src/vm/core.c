@@ -322,6 +322,14 @@ void la64_core_terminate(la64_core_t *core)
     {
         return;
     }
+
+    #if EMEX64VM_DEVICE_DISPLAY
+    #if defined(__APPLE__)
+    /* FIXME: this doesn't work */
+    CFRunLoopStop(CFRunLoopGetMain());
+    exit(0); /* FIXME: this is so it works anyways */
+    #endif /* __APPLE__ */
+    #endif /* #if EMEX64VM_DEVICE_DISPLAY */
     
     if(pthread_self() == core->pthread)
     {

@@ -46,7 +46,7 @@ _main:
     mov r5, 0
 .video_reloop:
     cmp r5, 6520
-    bgt .video_rereloop
+    bgt .end
     mov r0, FB_FRAMEBUFFER
 .video_loop:
     ldb r3, r2
