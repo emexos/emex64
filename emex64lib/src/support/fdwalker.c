@@ -73,7 +73,7 @@ int fdwalker_write(fdwalker_t *fw,
     if(num_bits > 8)
     {
         uint8_t num_bytes = (num_bits + 7) / 8;
-        if(bw_host_endian() != fw->endian)
+        if(BW_HOST_ENDIAN != fw->endian)
         {
             value = bw_swap_n(value, num_bytes);
         }
@@ -129,7 +129,7 @@ uint64_t fdwalker_read(fdwalker_t *fw,
     if(num_bits > 8)
     {
         uint8_t num_bytes = (num_bits + 7) / 8;
-        if(bw_host_endian() != fw->endian)
+        if(BW_HOST_ENDIAN != fw->endian)
         {
             value = bw_swap_n(value, num_bytes);
         }

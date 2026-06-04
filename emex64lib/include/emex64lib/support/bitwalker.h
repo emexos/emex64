@@ -29,6 +29,13 @@
 #include <stddef.h>
 #include <string.h>
 
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "bitwalker requires a little-endian host"
+#define BW_HOST_ENDIAN  BW_BIG_ENDIAN
+#else
+#define BW_HOST_ENDIAN  BW_LITTLE_ENDIAN
+#endif
+
 typedef enum {
     BW_LITTLE_ENDIAN,
     BW_BIG_ENDIAN
@@ -42,7 +49,6 @@ typedef struct {
     bw_endian_t endian;
 } bitwalker_t;
 
-bw_endian_t bw_host_endian(void);
 uint64_t bw_swap_n(uint64_t v, uint8_t num_bytes);
 
 void bitwalker_init(bitwalker_t *bw, uint8_t *buf, size_t capacity, bw_endian_t endian);

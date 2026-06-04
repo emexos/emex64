@@ -94,14 +94,13 @@ _putbase:
     ret
 
 _main:
-    stq TIMER_COMPARE, 0xFFFFFFFFFFFFFFFF ; we need ticks
+    stq TIMER_COMPARE, 0xFFFFFFFFFFFFFFFF   ; we need ticks
     stq TIMER_CTRL, 0x7
-
-    stb FB_ENABLED, 1                   ; enables the framebuffer
+    stb FB_ENABLED, 1                       ; enables the framebuffer
     ldb r0, FB_ENABLED
     bz r0, .end
 .video_entry:
-    add r1, FB_FRAMEBUFFER, 0x10000     ; calculating the framebuffer end
+    add r1, FB_FRAMEBUFFER, 0x10000         ; calculating the framebuffer end
     mov r2, VIDEO_BASE
 .video_rereloop:
     mov r2, VIDEO_BASE
@@ -112,8 +111,8 @@ _main:
     mov r0, FB_FRAMEBUFFER
 .video_loop:
     ldb r3, r2
-    pdep r4, r3, 0x0101010101010101     ; spread bits to byte
-    mul r4, r4, 0xFF                    ; expand to bytes
+    pdep r4, r3, 0x0101010101010101         ; spread bits to byte
+    mul r4, r4, 0xFF                        ; expand to bytes
     bswapq r4
     stq r0, r4
     add r0, 8

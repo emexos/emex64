@@ -24,17 +24,7 @@
 
 #include <emex64lib/support/bitwalker.h>
 
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
-#error "bitwalker requires a little-endian host"
-#endif
-
 /* helper */
-
-bw_endian_t bw_host_endian(void)
-{
-    static const uint16_t test = 0x0001;
-    return (*((const uint8_t*)&test) == 0x01) ? BW_LITTLE_ENDIAN : BW_BIG_ENDIAN;
-}
 
 uint64_t bw_swap_n(uint64_t v,
                    uint8_t num_bytes)
@@ -59,11 +49,11 @@ void bitwalker_init(bitwalker_t *bw,
                     size_t capacity,
                     bw_endian_t endian)
 {
-    bw->buffer   = buf;
+    bw->buffer = buf;
     bw->byte_pos = 0;
-    bw->bit_idx  = 0;
+    bw->bit_idx = 0;
     bw->capacity = capacity;
-    bw->endian   = endian;
+    bw->endian = endian;
     memset(buf, 0, capacity);
 }
 
@@ -72,11 +62,11 @@ void bitwalker_init_read(bitwalker_t *bw,
                          size_t len,
                          bw_endian_t endian)
 {
-    bw->buffer   = (uint8_t *)buf;
+    bw->buffer = (uint8_t *)buf;
     bw->byte_pos = 0;
-    bw->bit_idx  = 0;
+    bw->bit_idx = 0;
     bw->capacity = len;
-    bw->endian   = endian;
+    bw->endian = endian;
 }
 
 /* management */
@@ -108,7 +98,7 @@ int bitwalker_write(bitwalker_t *bw,
     if(num_bits > 8)
     {
         uint8_t num_bytes = (num_bits + 7) / 8;
-        if(bw_host_endian() != bw->endian)
+        if(BW_HOST_ENDIAN != bw->endian)
         {
             value = bw_swap_n(value, num_bytes);
         }
@@ -139,33 +129,36 @@ int bitwalker_write(bitwalker_t *bw,
 uint64_t bitwalker_read(bitwalker_t *bw,
                         uint8_t num_bits)
 {
-    if(num_bits == 0 || num_bits > 64 || bw->byte_pos >= bw->capacity)
+    if(num_bits == 0 || bw->byte_pos >= bw->capacity)
     {
         return 0;
     }
 
-    /* copy up to 8 bytes */
+    /*
+     * calculate how many bits we are offset
+     * because on a 64bit number we could be
+     * a couple of bits offset.
+     */
     size_t remain = bw->capacity - bw->byte_pos;
     size_t n = remain < 9 ? remain : 9;
 
+    /* copying up to 9 bytes into the chunk */
     __uint128_t chunk = 0;
     memcpy(&chunk, bw->buffer + bw->byte_pos, n);
 
-    /* shift away preceding bits */
+    /* now lets set the schunk and so on */
     uint64_t schunk = (uint64_t)(chunk >> bw->bit_idx);
-    uint64_t mask = (num_bits == 64) ? UINT64_MAX : ((1ULL << num_bits) - 1);
-    uint64_t value = schunk & mask;
+    uint64_t value = schunk & ((num_bits == 64) ? UINT64_MAX : ((1ULL << num_bits) - 1));
+    uint32_t total_bits = bw->bit_idx + num_bits;
+    bw->byte_pos += total_bits >> 3;
+    bw->bit_idx = total_bits & 7;
 
-    bw->bit_idx += num_bits;
-    bw->byte_pos += bw->bit_idx >> 3;
-    bw->bit_idx &= 7;
-
-    /* endian fix */
+    /* endian fix (on missmatch) */
     if(num_bits > 8)
     {
-        uint8_t num_bytes = (num_bits + 7) / 8;
-        if(bw_host_endian() != bw->endian)
+        if(BW_HOST_ENDIAN != bw->endian)
         {
+            uint8_t num_bytes = (num_bits + 7) / 8;
             value = bw_swap_n(value, num_bytes);
         }
     }
