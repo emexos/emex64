@@ -39,8 +39,8 @@
 section .data
     exception_msg db "[!] panic because of exception code: 0x\0"
     fw_font_test_msg db "[fw] firmware font test\n     ABCDEFGHIJKLMNOPQRSTUVWXYZ\n     abcdefghijklmnopqrstuvwxyz\n     01234567890\n     @#%^&*()!<>?:;\n\0"
-    fw_hello_msg db "[fw] hello, world!\n\0"
-    fw_generic_msg db "[fw] hex print test (expected: 0xf0f0): "
+    fw_memory_msg db "[fw] memory available: \0"
+    fw_bytes_msg db " Bytes\n\0"
 
 _exception_handler:
     bl _puts, exception_msg
@@ -56,12 +56,10 @@ _fw_start:
     stw gui_line, 10
     
     bl _puts, fw_font_test_msg
-    bl _puts, fw_hello_msg
-    bl _puts, fw_generic_msg
-    bl _putc, '0'
-    bl _putc, 'x'
-    bl _putbase, 0xf0f0, 16
-    bl _putc, '\n'
+    bl _puts, fw_memory_msg
+    bl _mc_get_mem_size
+    bl _putbase, rr, 10
+    bl _puts, fw_bytes_msg
 
 .hang:
     hlt
