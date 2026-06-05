@@ -169,7 +169,7 @@ uint64_t emex64_pop(emex64_core_t *core)
     return value;
 }
 
-/* call convention not needed, emex64 supports arguments directly in bl (biggest win ever) */
+/* call convention not needed, emex64 supports arguments directly in bl (biggest L ever, we gotta make a call convention) */
 void emex64_op_bl(emex64_core_t *core)
 {
     emex64_instr_termcond(core->op.param_cnt < 1);
