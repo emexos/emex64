@@ -157,6 +157,7 @@ static inline bool la64_core_decode_instruction_at_pc(la64_core_t *core)
     {
         /* switch through modes */
         enum kEmex64ParameterCoding coding = (uint8_t)bitwalker_read(&bw, 3);
+        core->op.param_coding[i] = coding;
         switch(coding)
         {
             case kEmex64ParameterCodingEnd:

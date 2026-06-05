@@ -310,16 +310,15 @@ typedef struct la64_core {
          */
         uint64_t imm[32];
 
-        /* count of parameters */
-        uint8_t param_cnt;
-
         /*
          * pointer array for parameters, at emulation we
          * dont have many emulation options so we stuff
          * each parameter into this array.. register
          * intermediate, etc.
          */
+        uint8_t param_cnt;
         uint64_t *param[32];
+        enum kEmex64ParameterCoding param_coding[32];
     } op;
 
     /*
