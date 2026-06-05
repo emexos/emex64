@@ -41,9 +41,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+void uart_restore_mode(void);
+
 static void display_close_callback(GLFWwindow* window)
 {
     /* TODO: shutdown the VM instead */
+    uart_restore_mode();
     exit(0);
 }
 

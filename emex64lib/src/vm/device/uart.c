@@ -46,7 +46,7 @@ static void uart_set_raw_mode(void)
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-static void uart_restore_mode(void)
+void uart_restore_mode(void)
 {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &uart_orig_termios);
 }
