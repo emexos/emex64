@@ -27,10 +27,11 @@
 
 section .data
     exception_msg db "[!] panic because of exception code: 0x\0"
-    fw_font_test_msg db "[fw] firmware font test\n     ABCDEFGHIJKLMNOPQRSTUVWXYZ\n     abcdefghijklmnopqrstuvwxyz\n     01234567890\n     @#%^&*()!<>?:;\n\0"
+    fw_font_test_msg db "[fw] firmware font test\n     ABCDEFGHIJKLMNOPQRSTUVWXYZ\n     abcdefghijklmnopqrstuvwxyz\n     0123456789\n     @#%^&*()!<>?:;\n\0"
     fw_display_msg db "[fw] display resolution: \0"
     fw_display_x_msg db " x \0"
-    fw_memory_msg db "[fw] memory available: \0"
+    fw_memory_msg db "[fw] total memory size: \0"
+    fw_memory_available_msg db "[fw] memory available: \0"
     fw_bytes_msg db " Bytes\n\0"
 
 _exception_handler:
@@ -55,12 +56,19 @@ _fw_start:
     bl _puts, fw_display_x_msg
     bl _putbase, r1, 10
     bl _putc, '\n'
-    
-    bl _print_time
-    bl _puts, fw_memory_msg
+
     bl _mc_get_mem_size
+    sub r0, rr, __la64_exec_img_end
+    
+    bl _puts, fw_memory_msg
     bl _putbase, rr, 10
     bl _puts, fw_bytes_msg
+
+    bl _puts, fw_memory_available_msg
+    bl _putbase, r0, 10
+    bl _puts, fw_bytes_msg 
+    
+    bl _print_time
     
 .hang:
     hlt
