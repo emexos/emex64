@@ -139,7 +139,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
 {
     /* accessing memory */
     void *iptr = emex64_memory_access(core, core->rl[kEmex64RegisterPC], 256);
-    if(iptr == NULL)
+    if(unlikely(iptr == NULL))
     {
         core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
         return false;
@@ -151,7 +151,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
 
     /* getting opcode */
     enum kEmex64Opcode opcode = (uint8_t)bitwalker_read(&bw, 8);
-    if(opcode > kEmex64OpcodeMAX)
+    if(unlikely(opcode > kEmex64OpcodeMAX))
     {
         core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadInstruction;
         return false;
@@ -175,7 +175,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
             case kEmex64ParameterCodingReg:
             {
                 uint8_t rcnt = (uint8_t)bitwalker_read(&bw, 5);
-                if(rcnt > kEmex64RegisterRR && core->rl[kEmex64RegisterCR0] < kEmex64ElevationLevelKernel)
+                if(unlikely(rcnt > kEmex64RegisterRR && core->rl[kEmex64RegisterCR0] < kEmex64ElevationLevelKernel))
                 {
                     core->rl[kEmex64RegisterCR2] = kEmex64ExceptionPermission;
                     return false;
@@ -261,7 +261,7 @@ static void *emex64_core_execute_thread(void *arg)
          * because we would just immediately interrupt into another
          * interrupt handler in the interrupt vector table.
          */
-        if(core->in_interrupt || core->op.opcode == kEmex64OpcodeIRET)
+        if(unlikely(core->in_interrupt || core->op.opcode == kEmex64OpcodeIRET))
         {
             goto tick_timer;
         }
