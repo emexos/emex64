@@ -25,7 +25,6 @@
 #include <emex64lib/vm/instruction/instruction.h>
 #include <emex64lib/vm/instruction/ctrl.h>
 #include <emex64lib/vm/machine.h>
-#include <emex64lib/vm/memory.h>
 #include <stdio.h>
 
 void emex64_op_b(emex64_core_t *core)
@@ -166,26 +165,26 @@ void emex64_op_bl(emex64_core_t *core)
     }
 
     /* pushing all relevant registers onto stack */
-    emex64_push(core, core->rl[kEmex64RegisterPC] + core->op.ilen);
-    emex64_push(core, core->rl[kEmex64RegisterFP]);
-    emex64_push(core, core->rl[kEmex64RegisterCF]);
-    emex64_push(core, core->rl[kEmex64RegisterR0]);
-    emex64_push(core, core->rl[kEmex64RegisterR1]);
-    emex64_push(core, core->rl[kEmex64RegisterR2]);
-    emex64_push(core, core->rl[kEmex64RegisterR3]);
-    emex64_push(core, core->rl[kEmex64RegisterR4]);
-    emex64_push(core, core->rl[kEmex64RegisterR5]);
-    emex64_push(core, core->rl[kEmex64RegisterR6]);
-    emex64_push(core, core->rl[kEmex64RegisterR7]);
-    emex64_push(core, core->rl[kEmex64RegisterR8]);
-    emex64_push(core, core->rl[kEmex64RegisterR9]);
-    emex64_push(core, core->rl[kEmex64RegisterR10]);
-    emex64_push(core, core->rl[kEmex64RegisterR11]);
-    emex64_push(core, core->rl[kEmex64RegisterR12]);
-    emex64_push(core, core->rl[kEmex64RegisterR13]);
-    emex64_push(core, core->rl[kEmex64RegisterR14]);
-    emex64_push(core, core->rl[kEmex64RegisterR15]);
-    emex64_push(core, core->rl[kEmex64RegisterR16]);
+    emex64_push_il(core, core->rl[kEmex64RegisterPC] + core->op.ilen);
+    emex64_push_il(core, core->rl[kEmex64RegisterFP]);
+    emex64_push_il(core, core->rl[kEmex64RegisterCF]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR0]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR1]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR2]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR3]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR4]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR5]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR6]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR7]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR8]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR9]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR10]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR11]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR12]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR13]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR14]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR15]);
+    emex64_push_il(core, core->rl[kEmex64RegisterR16]);
 
     /* writing parameters */
     for(uint8_t i = 1; i < core->op.param_cnt && i < (kEmex64RegisterR16 - 1); i++)
@@ -209,26 +208,26 @@ void emex64_op_ret(emex64_core_t *core)
 
     core->rl[kEmex64RegisterSP] = core->rl[kEmex64RegisterFP];
 
-    core->rl[kEmex64RegisterR16] = emex64_pop(core);
-    core->rl[kEmex64RegisterR15] = emex64_pop(core);
-    core->rl[kEmex64RegisterR14] = emex64_pop(core);
-    core->rl[kEmex64RegisterR13] = emex64_pop(core);
-    core->rl[kEmex64RegisterR12] = emex64_pop(core);
-    core->rl[kEmex64RegisterR11] = emex64_pop(core);
-    core->rl[kEmex64RegisterR10] = emex64_pop(core);
-    core->rl[kEmex64RegisterR9] = emex64_pop(core);
-    core->rl[kEmex64RegisterR8] = emex64_pop(core);
-    core->rl[kEmex64RegisterR7] = emex64_pop(core);
-    core->rl[kEmex64RegisterR6] = emex64_pop(core);
-    core->rl[kEmex64RegisterR5] = emex64_pop(core);
-    core->rl[kEmex64RegisterR4] = emex64_pop(core);
-    core->rl[kEmex64RegisterR3] = emex64_pop(core);
-    core->rl[kEmex64RegisterR2] = emex64_pop(core);
-    core->rl[kEmex64RegisterR1] = emex64_pop(core);
-    core->rl[kEmex64RegisterR0] = emex64_pop(core);
-    core->rl[kEmex64RegisterCF] = emex64_pop(core);
-    core->rl[kEmex64RegisterFP] = emex64_pop(core);
-    core->rl[kEmex64RegisterPC] = emex64_pop(core);
+    core->rl[kEmex64RegisterR16] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR15] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR14] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR13] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR12] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR11] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR10] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR9] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR8] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR7] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR6] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR5] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR4] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR3] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR2] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR1] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR0] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterCF] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterFP] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterPC] = emex64_pop_il(core);
     core->op.ilen = 0;
 }
 
@@ -244,28 +243,28 @@ void emex64_op_iret(emex64_core_t *core)
 
     core->rl[kEmex64RegisterSP] = core->rl[kEmex64RegisterFP];
 
-    core->rl[kEmex64RegisterR16] = emex64_pop(core);
-    core->rl[kEmex64RegisterR15] = emex64_pop(core);
-    core->rl[kEmex64RegisterR14] = emex64_pop(core);
-    core->rl[kEmex64RegisterR13] = emex64_pop(core);
-    core->rl[kEmex64RegisterR12] = emex64_pop(core);
-    core->rl[kEmex64RegisterR11] = emex64_pop(core);
-    core->rl[kEmex64RegisterR10] = emex64_pop(core);
-    core->rl[kEmex64RegisterR9] = emex64_pop(core);
-    core->rl[kEmex64RegisterR8] = emex64_pop(core);
-    core->rl[kEmex64RegisterR7] = emex64_pop(core);
-    core->rl[kEmex64RegisterR6] = emex64_pop(core);
-    core->rl[kEmex64RegisterR5] = emex64_pop(core);
-    core->rl[kEmex64RegisterR4] = emex64_pop(core);
-    core->rl[kEmex64RegisterR3] = emex64_pop(core);
-    core->rl[kEmex64RegisterR2] = emex64_pop(core);
-    core->rl[kEmex64RegisterR1] = emex64_pop(core);
-    core->rl[kEmex64RegisterR0] = emex64_pop(core);
-    core->rl[kEmex64RegisterCF] = emex64_pop(core);
-    core->rl[kEmex64RegisterFP] = emex64_pop(core);
-    uint64_t oldsp = emex64_pop(core);
-    core->rl[kEmex64RegisterPC] = emex64_pop(core);
-    core->rl[kEmex64RegisterCR0] = emex64_pop(core);
+    core->rl[kEmex64RegisterR16] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR15] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR14] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR13] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR12] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR11] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR10] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR9] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR8] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR7] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR6] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR5] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR4] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR3] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR2] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR1] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterR0] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterCF] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterFP] = emex64_pop_il(core);
+    uint64_t oldsp = emex64_pop_il(core);
+    core->rl[kEmex64RegisterPC] = emex64_pop_il(core);
+    core->rl[kEmex64RegisterCR0] = emex64_pop_il(core);
     core->op.ilen = 0;
 
     core->rl[kEmex64RegisterSP] = oldsp;
