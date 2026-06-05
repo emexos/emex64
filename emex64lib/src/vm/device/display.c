@@ -41,6 +41,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+static void display_close_callback(GLFWwindow* window)
+{
+    /* TODO: shutdown the VM instead */
+    exit(0);
+}
+
 static void die(const char* msg)
 {
     fprintf(stderr, "Error: %s\n", msg);
@@ -107,6 +113,7 @@ void *display_start(void *arg)
 
     GLFWwindow* win = glfwCreateWindow(LA64_FB_WIDTH, LA64_FB_HEIGHT, "EMEX64LCD @ 60Hz", NULL, NULL);
     if(!win) die("glfwCreateWindow failed");
+    glfwSetWindowCloseCallback(win, display_close_callback);
     glfwSetWindowAspectRatio(win, LA64_FB_WIDTH, LA64_FB_HEIGHT);
     glfwSetWindowSizeLimits(win, LA64_FB_WIDTH, LA64_FB_HEIGHT, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwMakeContextCurrent(win);
