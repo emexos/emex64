@@ -28,6 +28,7 @@ assembler_options_t assembler_options_default(void)
 {
     return (assembler_options_t){
         .page_align = true,
+        .absolute_addr_align = true,
         .start_entry_name = "_start",
         .warning_error = false,
         .warning_deprecated = true

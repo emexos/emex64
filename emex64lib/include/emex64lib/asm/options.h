@@ -29,6 +29,7 @@
 
 typedef struct assembler_options {
     bool page_align;                /* default: true */
+    bool absolute_addr_align;       /* default: true */
     const char *start_entry_name;   /* default: _start */
     bool warning_error;             /* default: false */
     bool warning_deprecated;        /* default: true */

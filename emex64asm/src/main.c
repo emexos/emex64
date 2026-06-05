@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     /* invocation settings */
     const char *start_entry_name = "_start";
     bool page_align = true;
+    bool absolute_addr_align = true;
     bool warning_deprecated = true;
 
     /* parse arguments */
@@ -79,6 +80,14 @@ int main(int argc, char *argv[])
             else if(strcmp(flag, "no_page_align") == 0)
             {
                 page_align = false;
+            }
+            else if(strcmp(flag, "absolute_addr_align") == 0)
+            {
+                absolute_addr_align = true;
+            }
+            else if(strcmp(flag, "no_absolute_addr_align") == 0)
+            {
+                absolute_addr_align = false;
             }
             else
             {
@@ -162,12 +171,12 @@ int main(int argc, char *argv[])
         output_path = "a.out";
     }
 
-    assembler_options_t options = {
-        .page_align = page_align,
-        .start_entry_name = start_entry_name,
-        .warning_error = warning_error,
-        .warning_deprecated = warning_deprecated
-    };
+    assembler_options_t options = assembler_options_default();
+    options.page_align = page_align;
+    options.absolute_addr_align = absolute_addr_align;
+    options.start_entry_name = start_entry_name;
+    options.warning_error = warning_error;
+    options.warning_deprecated = warning_deprecated;
 
     /* allocating compiler invocation */
     assembler_invocation_t *inv = assembler_invocation_alloc_with_options(output_path, options);
