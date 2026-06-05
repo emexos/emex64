@@ -46,7 +46,7 @@
 #include <CoreFoundation/CFRunLoop.h>
 #endif /* __APPLE__ */
 
-emex64_opfunc_entry_t opfunc_table[] = {
+static emex64_opfunc_entry_t kOpfuncTable[] = {
     /* core operations */
     [kEmex64OpcodeHLT] = { .func = emex64_op_hlt, .maxargs = 0 },
     [kEmex64OpcodeNOP] = { .func = emex64_op_nop, .maxargs = 0 },
@@ -107,6 +107,14 @@ emex64_opfunc_entry_t opfunc_table[] = {
     [kEmex64OpcodeIRET] = { .func = emex64_op_iret, .maxargs = 0 },
 };
 
+static const uint8_t kImmBits[] = {
+    [kEmex64ParameterCodingImm5] = 5,
+    [kEmex64ParameterCodingImm8] = 8,
+    [kEmex64ParameterCodingImm16] = 16,
+    [kEmex64ParameterCodingImm32] = 32,
+    [kEmex64ParameterCodingImm64] = 64,
+};
+
 emex64_core_t *emex64_core_alloc()
 {
     /* allocate a brand new core */
@@ -148,7 +156,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
     }
 
     core->op.opcode = opcode;
-    core->op.op = opfunc_table[opcode];
+    core->op.op = kOpfuncTable[opcode];
 
     /* parsing loop */
     uint8_t maxarg = core->op.op.maxargs;
@@ -175,21 +183,13 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
                 break;
             }
             case kEmex64ParameterCodingImm5:
-            {
-                core->op.imm[i] = bitwalker_read(&bw, 5);
-                core->op.param[i] = &(core->op.imm[i]);
-                break;
-            }
             case kEmex64ParameterCodingImm8:
             case kEmex64ParameterCodingImm16:
             case kEmex64ParameterCodingImm32:
             case kEmex64ParameterCodingImm64:
-            {
-                uint8_t bits = 1u << (((coding - kEmex64ParameterCodingImm8) + 1) + 2);
-                core->op.imm[i] = bitwalker_read(&bw, bits);
+                core->op.imm[i] = bitwalker_read(&bw, kImmBits[coding]);
                 core->op.param[i] = &(core->op.imm[i]);
                 break;
-            }
             case kEmex64ParameterCodingAddr64:
                 bitwalker_align_byte(&bw);
                 core->op.imm[i] = bitwalker_read(&bw, 64);
