@@ -8,7 +8,7 @@ compile:
 	rm badapple.o
 
 execute:
-	emex64vm --bios ./badapple
+	emex64vm --firmware ./badapple
 
 clean:
 	rm -rf badapple

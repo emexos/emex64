@@ -65,6 +65,7 @@ typedef struct {
 
 typedef struct reloc_table_entry {
     char *name;                             /* resolved label name */
+    bool relative;                          /* relative addressing */
     uint8_t bit_idx;                        /* bit offset */
     size_t byte_pos;                        /* position */
     struct assembler_token *at_link;        /* link to the originator of the entry */

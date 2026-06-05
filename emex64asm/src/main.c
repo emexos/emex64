@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     bool page_align = true;
     bool absolute_addr_align = true;
     bool warning_deprecated = true;
+    bool offset_branch = true;
 
     /* parse arguments */
     for(int i = 1; i < argc; i++)
@@ -88,6 +89,14 @@ int main(int argc, char *argv[])
             else if(strcmp(flag, "no_absolute_addr_align") == 0)
             {
                 absolute_addr_align = false;
+            }
+            else if(strcmp(flag, "offset_branch") == 0)
+            {
+                offset_branch = true;
+            }
+            else if(strcmp(flag, "no_offset_branch") == 0)
+            {
+                offset_branch = false;
             }
             else
             {
@@ -174,6 +183,7 @@ int main(int argc, char *argv[])
     assembler_options_t options = assembler_options_default();
     options.page_align = page_align;
     options.absolute_addr_align = absolute_addr_align;
+    options.offset_branch = offset_branch;
     options.start_entry_name = start_entry_name;
     options.warning_error = warning_error;
     options.warning_deprecated = warning_deprecated;

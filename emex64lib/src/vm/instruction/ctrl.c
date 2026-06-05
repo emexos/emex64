@@ -32,49 +32,12 @@ static inline uint64_t emex64_branch_pc(uint64_t pc, uint64_t v, enum kEmex64Par
     switch(coding)
     {
         case kEmex64ParameterCodingImm5:
-        {
-            if(v >= 16)
-            {
-                return pc - (32 - v);
-            }
-            else
-            {
-                return pc + v;
-            }
-        }
         case kEmex64ParameterCodingImm8:
-        {
-            if(v >= 0x80)
-            {
-                return pc - (0x100 - v);
-            }
-            else
-            {
-                return pc + v;
-            }
-        }
+            return pc + (int8_t)v;
         case kEmex64ParameterCodingImm16:
-        {
-            if(v >= 0x8000)
-            {
-                return pc - (0x10000 - v);
-            }
-            else
-            {
-                return pc + v;
-            }
-        }
+            return pc + (int16_t)v;
         case kEmex64ParameterCodingImm32:
-        {
-            if(v >= 0x80000000ULL)
-            {
-                return pc - (0x100000000ULL - v);
-            }
-            else
-            {
-                return pc + v;
-            }
-        }
+            return pc + (int32_t)v;
         default:
             return v;
     }
