@@ -22,25 +22,52 @@
 ; SOFTWARE.
 ;
 
-%define% FB_ENABLED 0x1FF00000
-%define% FB_HEIGHT  0x1FF00001
-%define% FB_WIDTH   0x1FF00003
-%define% FB_PALLETE 0x1FF00005
-%define% FB_FRAMEBUFFER 0x1FF00305
-%define% FRAMEBUFFER_SIZE 0x10000
+%define% FB_REG_ENABLED     0x1FF00000
+%define% FB_REG_HEIGHT      0x1FF00001
+%define% FB_REG_WIDTH       0x1FF00003
+%define% FB_PALLETE         0x1FF00005
+%define% FB_FRAMEBUFFER     0x1FF00305
 
-%define% PLATFORM_PWR 0x1FE00500
+%define% PLATFORM_PWR   0x1FE00500
 
 %define% VIDEO_BASE __la64_exec_img_end
 
+%define% VFB_HEIGHT 256
+%define% VFB_WIDTH  256
+%define% VFB_SIZE   0x10000
+
+;
+; r0: virt fb pointer
+; rr: phys fb pointer
+;
+_virt_to_phys_fb_addr:
+    ; gather framebuffer information
+    ldd r2, FB_REG_WIDTH
+
+    mov rr, r0
+
+    ; getting the offset of the provided ptr
+    sub r3, r0, FB_FRAMEBUFFER
+    
+    ; this math is only valid on 256 x 256 screens
+    shr r4, r3, 8
+    and r6, r3, 0xFF
+
+    ; physical framebuffer address
+    mul rr, r4, r2
+    add rr, r6
+    add rr, FB_FRAMEBUFFER
+
+    ret
+
 _start:
     ; checking if display device is available
-    ldb r0, FB_ENABLED
+    ldb r0, FB_REG_ENABLED
     bz r0, .end
 
     ; this is the main start of the video
 .video_entry:
-    add r1, FB_FRAMEBUFFER, FRAMEBUFFER_SIZE    ; calculating the end of the framebuffer, r1 is for the lifetime of this stack frame the marker of the framebuffer end
+    add r1, FB_FRAMEBUFFER, VFB_SIZE            ; calculating the end of the framebuffer, r1 is for the lifetime of this stack frame the marker of the framebuffer end
 
     ; starts the video it self
 .video_playback:
@@ -60,7 +87,8 @@ _start:
     pdep r4, r3, 0x0101010101010101             ; expanding the bitmap byte to a 64bit unsigned integer so we can draw it on the frame buffer
     mul r4, 0xFF                                ; applying color, 0xFF usually is white
     bswapq r4                                   ; reversing byte order
-    stq r0, r4                                  ; and drawing the 8byte segment to the framebuffer
+    bl _virt_to_phys_fb_addr, r0
+    stq rr, r4                                  ; and drawing the 8byte segment to the framebuffer
 
     ; pointer advancement logic
     add r0, 8
