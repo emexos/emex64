@@ -27,11 +27,64 @@
 #include <emex64lib/vm/machine.h>
 #include <stdio.h>
 
+static inline uint64_t emex64_branch_pc(uint64_t pc, uint64_t v, enum kEmex64ParameterCoding coding)
+{
+    switch(coding)
+    {
+        case kEmex64ParameterCodingImm5:
+        {
+            if(v >= 16)
+            {
+                return pc - (32 - v);
+            }
+            else
+            {
+                return pc + v;
+            }
+        }
+        case kEmex64ParameterCodingImm8:
+        {
+            if(v >= 0x80)
+            {
+                return pc - (0x100 - v);
+            }
+            else
+            {
+                return pc + v;
+            }
+        }
+        case kEmex64ParameterCodingImm16:
+        {
+            if(v >= 0x8000)
+            {
+                return pc - (0x10000 - v);
+            }
+            else
+            {
+                return pc + v;
+            }
+        }
+        case kEmex64ParameterCodingImm32:
+        {
+            if(v >= 0x80000000ULL)
+            {
+                return pc - (0x100000000ULL - v);
+            }
+            else
+            {
+                return pc + v;
+            }
+        }
+        default:
+            return v;
+    }
+}
+
 void emex64_op_b(emex64_core_t *core)
 {
     emex64_instr_termcond(core->op.param_cnt != 1);
     core->op.ilen = 0;
-    core->rl[kEmex64RegisterPC] = *(core->op.param[0]);
+    core->rl[kEmex64RegisterPC] = emex64_branch_pc(core->rl[kEmex64RegisterPC], *(core->op.param[0]), core->op.param_coding[0]);
 }
 
 void emex64_op_cmp(emex64_core_t *core)
@@ -111,7 +164,7 @@ void emex64_op_bz(emex64_core_t *core)
     if(*(core->op.param[0]) == 0)
     {
         core->op.ilen = 0;
-        core->rl[kEmex64RegisterPC] = *(core->op.param[1]);
+        core->rl[kEmex64RegisterPC] = emex64_branch_pc(core->rl[kEmex64RegisterPC], *(core->op.param[1]), core->op.param_coding[1]);
     }
 }
 
@@ -122,7 +175,7 @@ void emex64_op_bnz(emex64_core_t *core)
     if(*(core->op.param[0]) != 0)
     {
         core->op.ilen = 0;
-        core->rl[kEmex64RegisterPC] = *(core->op.param[1]);
+        core->rl[kEmex64RegisterPC] = emex64_branch_pc(core->rl[kEmex64RegisterPC], *(core->op.param[1]), core->op.param_coding[1]);
     }
 }
 
@@ -195,11 +248,9 @@ void emex64_op_bl(emex64_core_t *core)
     /* setting current frame pointer to stack pointer to point to stack frame */
     core->rl[kEmex64RegisterFP] = core->rl[kEmex64RegisterSP];
 
-    /* manipulating ilen */
+    /* initiating jump */
     core->op.ilen = 0;
-
-    /* jump! */
-    core->rl[kEmex64RegisterPC] = param_imm[0];
+    core->rl[kEmex64RegisterPC] = emex64_branch_pc(core->rl[kEmex64RegisterPC], param_imm[0], core->op.param_coding[0]);
 }
 
 void emex64_op_ret(emex64_core_t *core)
