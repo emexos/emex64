@@ -113,6 +113,7 @@ static const uint8_t kImmBits[] = {
     [kEmex64ParameterCodingImm16] = 16,
     [kEmex64ParameterCodingImm32] = 32,
     [kEmex64ParameterCodingImm64] = 64,
+    [kEmex64ParameterCodingAddr64] = 64,
 };
 
 emex64_core_t *emex64_core_alloc()
@@ -182,17 +183,15 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
                 core->op.param[i] = &(core->rl[rcnt]);
                 break;
             }
+            case kEmex64ParameterCodingAddr64:
+                bitwalker_align_byte(&bw);
+                /* fallthrough */
             case kEmex64ParameterCodingImm5:
             case kEmex64ParameterCodingImm8:
             case kEmex64ParameterCodingImm16:
             case kEmex64ParameterCodingImm32:
             case kEmex64ParameterCodingImm64:
                 core->op.imm[i] = bitwalker_read(&bw, kImmBits[coding]);
-                core->op.param[i] = &(core->op.imm[i]);
-                break;
-            case kEmex64ParameterCodingAddr64:
-                bitwalker_align_byte(&bw);
-                core->op.imm[i] = bitwalker_read(&bw, 64);
                 core->op.param[i] = &(core->op.imm[i]);
                 break;
         }
