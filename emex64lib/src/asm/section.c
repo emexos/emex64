@@ -26,10 +26,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
+#include <errno.h>
 
 #include <emex64lib/support/parser.h>
 #include <emex64lib/support/bitwalker.h>
 #include <emex64lib/support/diag.h>
+#include <emex64lib/support/file.h>
 
 #include <emex64lib/asm/section.h>
 #include <emex64lib/asm/code.h>
@@ -79,6 +82,83 @@ bool assembler_section_parse(assembler_invocation_t *inv)
                     else if(strcmp(inv->line[i].token[1].str, "dq") == 0)
                     {
                         dbs = 64;
+                    }
+                    else if(strcmp(inv->line[i].token[1].str, "df") == 0)
+                    {
+                        const char *base_file_path = inv->file[inv->line[i].file_idx]->path;
+
+                        /* need directory path */
+                        char base_dir[PATH_MAX];
+                        const char *last_slash = strrchr(base_file_path, '/');
+                        if(!last_slash)
+                        {
+                            strcpy(base_dir, ".");
+                        }
+                        else
+                        {
+                            size_t len = last_slash - base_file_path;
+                            if(len == 0)
+                            {
+                                strcpy(base_dir, "/");
+                            }
+                            else
+                            {
+                                memcpy(base_dir, base_file_path, len);
+                                base_dir[len] = '\0';
+                            }
+                        }
+
+                        /* iterating through the chain */
+                        for(unsigned long a = 2; a < inv->line[i].token_cnt; a++)
+                        {
+                            /* using low level type parser */
+                            parser_return_t pr = parse_value_from_string(inv->line[i].token[a].str);
+
+                            /* checking type */
+                            if(pr.type == emexParserValueTypeBuffer)
+                            {
+                                char *path_component = malloc(pr.len + 1);
+                                strncpy(path_component, (char*)pr.value, pr.len);
+                                path_component[pr.len] = '\0';
+
+                                char joined[PATH_MAX];
+                                int n = snprintf(joined, sizeof(joined), "%s/%s", base_dir, path_component);
+                                if(n < 0 || n >= (int)sizeof(joined))
+                                {
+                                    diag_error(&inv->line[i].token[a], "path too long: %s\n", path_component);
+                                    free(path_component);
+                                    return false;
+                                }
+
+                                char resolved[PATH_MAX];
+                                if(realpath(joined, resolved) == NULL)
+                                {
+                                    diag_error(&inv->line[i].token[a], "cannot resolve path \"%s\"\n", path_component);
+                                    free(path_component);
+                                    return false;
+                                }
+
+                                emex_file_t *file = emex_file_alloc(resolved);
+                                if(file == NULL || !emex_file_open(file))
+                                {
+                                    diag_error(&inv->line[i].token[a], "cannot open file at \"%s\"\n", path_component);
+                                    free(path_component);
+                                    return false;
+                                }
+
+                                fdwalker_write_buf(inv->fdwalker, file->code, file->len);
+
+                                emex_file_close(file);
+                                emex_file_dealloc(file);
+                                free(path_component);
+                                continue;
+                            }
+
+                            diag_error(&(inv->line[i].token[1]), "not a file path \"%s\"\n", inv->line[i].token[1].str);
+                            return false;
+                        }
+
+                        continue;
                     }
                     else if(strcmp(inv->line[i].token[1].str, "db") != 0)
                     {

@@ -36,6 +36,9 @@
 %define% VFB_WIDTH  256
 %define% VFB_SIZE   0x10000
 
+section .data
+    badapple_bitmap df "../../badapple/vid.bitmask"
+
 _start:
     ; checking if display device is available
     ldb r0, FB_REG_ENABLED
@@ -49,7 +52,7 @@ _start:
 
     ; starts the video it self
 .video_playback:
-    mov r2, VIDEO_BASE
+    mov r2, badapple_bitmap
     mov r5, 0
 
     ; advances to the next frame
