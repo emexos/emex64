@@ -43,7 +43,7 @@
 
 kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
 {
-    switch(key)
+    switch (key)
     {
         case GLFW_KEY_A: return kEmexKeyPhysA;
         case GLFW_KEY_B: return kEmexKeyPhysB;
@@ -72,7 +72,7 @@ kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
         case GLFW_KEY_Y: return kEmexKeyPhysY;
         case GLFW_KEY_Z: return kEmexKeyPhysZ;
 
-        case GLFW_KEY_0: return kEmexKeyPhys0;
+        case GLFW_KEY_GRAVE_ACCENT: return kEmexKeyPhysGrave;
         case GLFW_KEY_1: return kEmexKeyPhys1;
         case GLFW_KEY_2: return kEmexKeyPhys2;
         case GLFW_KEY_3: return kEmexKeyPhys3;
@@ -82,17 +82,21 @@ kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
         case GLFW_KEY_7: return kEmexKeyPhys7;
         case GLFW_KEY_8: return kEmexKeyPhys8;
         case GLFW_KEY_9: return kEmexKeyPhys9;
-
-        case GLFW_KEY_SPACE: return kEmexKeyPhysSpace;
-        case GLFW_KEY_ENTER: return kEmexKeyPhysEnter;
+        case GLFW_KEY_0: return kEmexKeyPhys0;
+        case GLFW_KEY_MINUS: return kEmexKeyPhysMinus;
+        case GLFW_KEY_EQUAL: return kEmexKeyPhysEqual;
         case GLFW_KEY_BACKSPACE: return kEmexKeyPhysBackspace;
-        case GLFW_KEY_TAB: return kEmexKeyPhysTab;
-        case GLFW_KEY_ESCAPE: return kEmexKeyPhysEsc;
 
-        case GLFW_KEY_LEFT: return kEmexKeyPhysArrowLeft;
-        case GLFW_KEY_RIGHT: return kEmexKeyPhysArrowRight;
-        case GLFW_KEY_UP: return kEmexKeyPhysArrowUp;
-        case GLFW_KEY_DOWN: return kEmexKeyPhysArrowDown;
+        case GLFW_KEY_TAB: return kEmexKeyPhysTab;
+        case GLFW_KEY_LEFT_BRACKET: return kEmexKeyPhysLeftBracket;
+        case GLFW_KEY_RIGHT_BRACKET: return kEmexKeyPhysRightBracket;
+        case GLFW_KEY_BACKSLASH: return kEmexKeyPhysBackslash;
+        case GLFW_KEY_SEMICOLON: return kEmexKeyPhysSemicolon;
+        case GLFW_KEY_APOSTROPHE: return kEmexKeyPhysQuote;
+        case GLFW_KEY_ENTER: return kEmexKeyPhysEnter;
+        case GLFW_KEY_COMMA: return kEmexKeyPhysComma;
+        case GLFW_KEY_PERIOD: return kEmexKeyPhysPeriod;
+        case GLFW_KEY_SLASH: return kEmexKeyPhysSlash;
 
         case GLFW_KEY_LEFT_SHIFT: return kEmexKeyPhysLeftShift;
         case GLFW_KEY_RIGHT_SHIFT: return kEmexKeyPhysRightShift;
@@ -102,7 +106,10 @@ kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
         case GLFW_KEY_RIGHT_ALT: return kEmexKeyPhysRightAlt;
         case GLFW_KEY_LEFT_SUPER: return kEmexKeyPhysLeftGUI;
         case GLFW_KEY_RIGHT_SUPER: return kEmexKeyPhysRightGUI;
+        case GLFW_KEY_MENU: return kEmexKeyPhysMenu;
+        case GLFW_KEY_SPACE: return kEmexKeyPhysSpace;
 
+        case GLFW_KEY_ESCAPE: return kEmexKeyPhysEsc;
         case GLFW_KEY_F1: return kEmexKeyPhysF1;
         case GLFW_KEY_F2: return kEmexKeyPhysF2;
         case GLFW_KEY_F3: return kEmexKeyPhysF3;
@@ -115,6 +122,42 @@ kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
         case GLFW_KEY_F10: return kEmexKeyPhysF10;
         case GLFW_KEY_F11: return kEmexKeyPhysF11;
         case GLFW_KEY_F12: return kEmexKeyPhysF12;
+
+        case GLFW_KEY_CAPS_LOCK: return kEmexKeyPhysCapsLock;
+        case GLFW_KEY_NUM_LOCK: return kEmexKeyPhysNumLock;
+        case GLFW_KEY_SCROLL_LOCK: return kEmexKeyPhysScrollLock;
+
+        case GLFW_KEY_INSERT: return kEmexKeyPhysInsert;
+        case GLFW_KEY_DELETE: return kEmexKeyPhysDelete;
+        case GLFW_KEY_HOME: return kEmexKeyPhysHome;
+        case GLFW_KEY_END: return kEmexKeyPhysEnd;
+        case GLFW_KEY_PAGE_UP: return kEmexKeyPhysPageUp;
+        case GLFW_KEY_PAGE_DOWN: return kEmexKeyPhysPageDown;
+        case GLFW_KEY_UP: return kEmexKeyPhysArrowUp;
+        case GLFW_KEY_DOWN: return kEmexKeyPhysArrowDown;
+        case GLFW_KEY_LEFT: return kEmexKeyPhysArrowLeft;
+        case GLFW_KEY_RIGHT: return kEmexKeyPhysArrowRight;
+
+        case GLFW_KEY_KP_DIVIDE: return kEmexKeyPhysNumpadDivide;
+        case GLFW_KEY_KP_MULTIPLY: return kEmexKeyPhysNumpadMultiply;
+        case GLFW_KEY_KP_SUBTRACT: return kEmexKeyPhysNumpadMinus;
+        case GLFW_KEY_KP_ADD: return kEmexKeyPhysNumpadPlus;
+        case GLFW_KEY_KP_ENTER: return kEmexKeyPhysNumpadEnter;
+        case GLFW_KEY_KP_0: return kEmexKeyPhysNumpad0;
+        case GLFW_KEY_KP_1: return kEmexKeyPhysNumpad1;
+        case GLFW_KEY_KP_2: return kEmexKeyPhysNumpad2;
+        case GLFW_KEY_KP_3: return kEmexKeyPhysNumpad3;
+        case GLFW_KEY_KP_4: return kEmexKeyPhysNumpad4;
+        case GLFW_KEY_KP_5: return kEmexKeyPhysNumpad5;
+        case GLFW_KEY_KP_6: return kEmexKeyPhysNumpad6;
+        case GLFW_KEY_KP_7: return kEmexKeyPhysNumpad7;
+        case GLFW_KEY_KP_8: return kEmexKeyPhysNumpad8;
+        case GLFW_KEY_KP_9: return kEmexKeyPhysNumpad9;
+        case GLFW_KEY_KP_DECIMAL: return kEmexKeyPhysNumpadDot;
+
+        case GLFW_KEY_PRINT_SCREEN: return kEmexKeyPhysPrintScreen;
+        case GLFW_KEY_PAUSE: return kEmexKeyPhysPause;
+
         default: return kEmexKeyPhysUnknown;
     }
 }
