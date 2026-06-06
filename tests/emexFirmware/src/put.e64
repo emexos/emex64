@@ -23,6 +23,7 @@
 ;
 
 section .data
+    putc_uart_logo dq "\n         +++++++++++++\n        ++++++++++++++\n       +++++++++++++++\n      ++++++++++++++++\n     +++++      ++++++\n    +++++      ++++++ \n   +++++      ++++++  \n  +++++      ++++++   \n +++++      ++++++    \n+++++      ++++++     \n+++++      +++++      \n +++++      +++       \n  +++++      +        \n   +++++              \n    +++++             \n     +++++            \n      ++++++++++++++++\n       +++++++++++++++\n        ++++++++++++++\n         +++++++++++++\n\nemexLabs(c) 2026\n\n\0"
     putc_sym dq _gui_putc
 
 _putc:
@@ -31,9 +32,13 @@ _putc:
 
 _put_init:
     ldb r0, FB_ENABLED
-    bnz r0, .end
+    bnz r0, .end_gui
+.end_uart:
     stq putc_sym, _uart_putc
-.end:
+    bl _puts, putc_uart_logo
+    ret
+.end_gui:
+    stw gui_line, 10
     ret
 
 _puts:

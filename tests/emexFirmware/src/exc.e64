@@ -265,4 +265,8 @@ _exception_handler:
     ; stb PLATFORM_PWR, 0
     ;
 
+    ; on UART we don't have to keep the device alive
+    ldb r0, FB_ENABLED
+    bz r0, _start.poweroff
+
     b _fw_start.hang
