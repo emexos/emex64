@@ -30,8 +30,6 @@
 
 %define% PLATFORM_PWR   0x1FE00500
 
-%define% VIDEO_BASE __emex64_exec_img_end
-
 %define% VFB_HEIGHT 256
 %define% VFB_WIDTH  256
 %define% VFB_SIZE   0x10000
