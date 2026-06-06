@@ -61,6 +61,11 @@ _fw_start:
     
     bl _print_time
 
+    mov r14, 7
+    mov r15, 8
+    mov r16, 9
+    mov cf, 10
+    mov sp, 0xFFFFFFFF
     div r0, 0, 0
     
 .hang:

@@ -71,7 +71,7 @@ void emex64_memory_dealloc(emex64_memory_t *memory)
 }
 
 bool emex64_memory_load_image(emex64_memory_t *memory,
-                            const char *image_path)
+                              onst char *image_path)
 {
     /*
      * opening bios image with RO(read-only)

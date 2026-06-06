@@ -159,6 +159,19 @@ bool emex64_serve_interrupt_if_needed(emex64_core_t *core)
     uint64_t oldsp = core->rl[kEmex64RegisterSP];
     uint64_t oldel = core->rl[kEmex64RegisterCR0];
 
+    /*
+     * must be kernel, because the IC is internal
+     * inside of the emex64 SoC and it will also
+     * handle syscalls for efficiency reasons, that
+     * decision ma change tho in the future. But it
+     * would be a vulnerability to elevate to
+     * SecureMonitor as that is only accessible at
+     * boot time.
+     * 
+     * todo: overhaul the register access system to
+     *       distinct between read vs write access.
+     *       my beautiful decoder is doomed.
+     */
     core->rl[kEmex64RegisterCR0] = kEmex64ElevationLevelKernel;
     core->rl[kEmex64RegisterSP] = core->rl[kEmex64RegisterCR1];
 

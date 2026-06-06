@@ -22,9 +22,59 @@
 ; SOFTWARE.
 ;
 
+%define% CR4_PT_PRESENT 0b00000001
+
+%define% REG_PC     0b00000
+%define% REG_SP     0b00001
+%define% REG_FP     0b00010
+%define% REG_CF     0b00011
+%define% REG_R0     0b00100
+%define% REG_R1     0b00101
+%define% REG_R2     0b00110
+%define% REG_R3     0b00111
+%define% REG_R4     0b01000
+%define% REG_R5     0b01001
+%define% REG_R6     0b01010
+%define% REG_R7     0b01011
+%define% REG_R8     0b01100
+%define% REG_R9     0b01101
+%define% REG_R10    0b01110
+%define% REG_R11    0b01111
+%define% REG_R12    0b10000
+%define% REG_R13    0b10001
+%define% REG_R14    0b10010
+%define% REG_R15    0b10011
+%define% REG_R16    0b10100
+%define% REG_RR     0b10101
+%define% REG_CR0    0b10110
+%define% REG_CR1    0b10111
+%define% REG_CR2    0b11000
+%define% REG_CR3    0b11001
+%define% REG_CR4    0b11010
+%define% REG_CR5    0b11011
+%define% REG_CR6    0b11100
+%define% REG_CR7    0b11101
+%define% REG_CR8    0b11110
+%define% REG_CR9    0b11111
+
+; generic code shit
 section .data
     exception_msg db "\n-- panic --\nexception code: 0x\0"
     exception2_msg db "reason: \0"
+    exception_reg_msg db "-- registers --\n\0"
+    exception_unsupported_ptb_msg db "page tables aren't supported yet."
+
+; array of all exception type names
+section .data
+    exception_unknown_msg db "unknown\0"
+    exception_badaccess_msg db "bad access\0"
+    exception_permission_msg db "permission denied\0"
+    exception_badinstruction_msg db "bad instruction\0"
+    exception_badarithmetic_msg db "bad arithmetic\0"
+    exception_type_array_msg dq exception_unknown_msg, exception_badaccess_msg, exception_permission_msg, exception_badinstruction_msg, exception_badarithmetic_msg
+
+; array of all register names
+section .data
     exception_pc_msg db "pc\0"
     exception_sp_msg db "sp\0"
     exception_fp_msg db "fp\0"
@@ -57,81 +107,180 @@ section .data
     exception_cr7_msg db "cr7\0"
     exception_cr8_msg db "cr8\0"
     exception_cr9_msg db "cr9\0"
-
-; array of exception types as string
-section .data
-    exception_unknown_msg db "unknown\0"
-    exception_badaccess_msg db "bad access\0"
-    exception_permission_msg db "permission denied\0"
-    exception_badinstruction_msg db "bad instruction\0"
-    exception_badarithmetic_msg db "bad arithmetic\0"
-    exception_array_msg dq exception_unknown_msg exception_badaccess_msg exception_permission_msg exception_badinstruction_msg exception_badarithmetic_msg
+    exception_array_reg_msg dq exception_pc_msg, exception_sp_msg, exception_fp_msg, exception_cf_msg, exception_r0_msg, exception_r1_msg, exception_r2_msg, exception_r3_msg, exception_r4_msg, exception_r5_msg, exception_r6_msg, exception_r7_msg, exception_r8_msg, exception_r9_msg, exception_r10_msg, exception_r11_msg, exception_r12_msg, exception_r13_msg, exception_r14_msg, exception_r15_msg, exception_r16_msg, exception_rr_msg, exception_cr0_msg, exception_cr1_msg, exception_cr2_msg, exception_cr3_msg, exception_cr4_msg, exception_cr5_msg, exception_cr6_msg, exception_cr7_msg, exception_cr8_msg, exception_cr9_msg
 
 _exception_str_for_code:
     mul r0, 8
-    add r0, exception_array_msg
+    add r0, exception_type_array_msg
     ldq rr, r0
     ret
 
 ; register printing
 ;
-; r0: reg str
-; r1: reg value
+; r0: reg enumerationmacro value
+; r1: fp value of final iret frame
 ;
+
+; switch table
+section .data
+    exception_putreg_switch dq _exception_putreg.pc, _exception_putreg.sp, _exception_putreg.fp, _exception_putreg.cf, _exception_putreg.r0, _exception_putreg.r1, _exception_putreg.r2, _exception_putreg.r3, _exception_putreg.r4, _exception_putreg.r5, _exception_putreg.r6, _exception_putreg.r7, _exception_putreg.r8, _exception_putreg.r9, _exception_putreg.r10, _exception_putreg.r11, _exception_putreg.r12, _exception_putreg.r13, _exception_putreg.r14, _exception_putreg.r15, _exception_putreg.r16, _exception_putreg.rr, _exception_putreg.cr0, _exception_putreg.cr1, _exception_putreg.cr2, _exception_putreg.cr3, _exception_putreg.cr4, _exception_putreg.cr5, _exception_putreg.cr6, _exception_putreg.cr7, _exception_putreg.cr8, _exception_putreg.cr9
+
 _exception_putreg:
-    bl _puts, r0
+    ; get the reg string
+    mov r6, r1
+    mul r1, r0, 8
+    add r2, r1, exception_array_reg_msg ; gives the string
+    add r3, r1, exception_putreg_switch ; gives the value getter handle of the switch
+    ldq r4, r2
+    ldq r5, r3
+    
+
+    ; get the reg value from frame pointer passed in r0
+    ; god this is so unefficient :<
+    ; time will hopefully fix this later
+    b r5
+    
+.pc:
+.sp:
+.fp:
+.cf:
+.r0:
+.r1:
+.r2:
+.r3:
+.r4:
+.r5:
+.r6:
+.r7:
+.r8:
+.r9:
+.r10:
+.r11:
+.r12:
+.r13:
+.r14:
+.r15:
+.r16:
+    sub r8, REG_RR, r0
+    mul r7, 8, r8
+    add r6, r7
+    ldq r0, r6
+    b .get_me_tf_out_of_here
+.rr:
+    mov r0, rr
+    b .get_me_tf_out_of_here
+.cr0:
+    mul r7, 8, 22
+    sub r6, r7
+    ldq r0, r6
+    b .get_me_tf_out_of_here
+.cr1:
+    ; return registers aren't pushed
+    mov r0, cr1
+    b .get_me_tf_out_of_here
+.cr2:
+    mov r0, cr2
+    b .get_me_tf_out_of_here
+.cr3:
+    mov r0, cr3
+    b .get_me_tf_out_of_here
+.cr4:
+    mov r0, cr4
+    b .get_me_tf_out_of_here
+.cr5:
+    mov r0, cr5
+    b .get_me_tf_out_of_here
+.cr6:
+    mov r0, cr6
+    b .get_me_tf_out_of_here
+.cr7:
+    mov r0, cr7
+    b .get_me_tf_out_of_here
+.cr8:
+    mov r0, cr8
+    b .get_me_tf_out_of_here
+.cr9:
+    mov r0, cr9
+    b .get_me_tf_out_of_here
+.get_me_tf_out_of_here:
+
+    ; here r1 becomes the reg str
+    ; here r2 becomes register value
+    bl _puts, r4
     bl _putc, ':'
     bl _putc, ' '
     bl _putc, '0'
     bl _putc, 'x'
-    bl _putbase, r1, 16
+    bl _putbase, r0, 16
     bl _putc, '\n'
     ret
 
 ; the handler it self
 _exception_handler:
+    ; return register is still from userspace here!
+    push rr
+
+    ; printing the exception code which
+    ; is what declares the reason
     bl _puts, exception_msg
     bl _putbase, cr2, 16
     bl _putc, '\n'
 
+    ; decoding exception code into
+    ; the exact exception
     bl _puts, exception2_msg
     bl _exception_str_for_code, cr2
     bl _puts, rr
     bl _putc, '\n'
     bl _putc, '\n'
 
-    bl _exception_putreg, exception_pc_msg, pc
-    bl _exception_putreg, exception_sp_msg, sp
-    bl _exception_putreg, exception_fp_msg, fp
-    bl _exception_putreg, exception_cf_msg, cf
-    bl _exception_putreg, exception_r0_msg, r0
-    bl _exception_putreg, exception_r1_msg, r1
-    bl _exception_putreg, exception_r2_msg, r2
-    bl _exception_putreg, exception_r3_msg, r3
-    bl _exception_putreg, exception_r4_msg, r4
-    bl _exception_putreg, exception_r5_msg, r5
-    bl _exception_putreg, exception_r6_msg, r6
-    bl _exception_putreg, exception_r7_msg, r7
-    bl _exception_putreg, exception_r8_msg, r8
-    bl _exception_putreg, exception_r9_msg, r9
-    bl _exception_putreg, exception_r10_msg, r10
-    bl _exception_putreg, exception_r11_msg, r11
-    bl _exception_putreg, exception_r12_msg, r12
-    bl _exception_putreg, exception_r13_msg, r13
-    bl _exception_putreg, exception_r14_msg, r14
-    bl _exception_putreg, exception_r15_msg, r15
-    bl _exception_putreg, exception_r16_msg, r16
-    bl _exception_putreg, exception_rr_msg, rr
-    bl _exception_putreg, exception_cr0_msg, cr0
-    bl _exception_putreg, exception_cr1_msg, cr1
-    bl _exception_putreg, exception_cr2_msg, cr2
-    bl _exception_putreg, exception_cr3_msg, cr3
-    bl _exception_putreg, exception_cr4_msg, cr4
-    bl _exception_putreg, exception_cr5_msg, cr5
-    bl _exception_putreg, exception_cr6_msg, cr6
-    bl _exception_putreg, exception_cr7_msg, cr7
-    bl _exception_putreg, exception_cr8_msg, cr8
-    bl _exception_putreg, exception_cr9_msg, cr9
+    ; register dump
+    ; the hard part is getting the old values
+    ; from the stack frame IC created
+    bl _puts, exception_reg_msg
+    and r0, cr4, CR4_PT_PRESENT
+    bz r0, .can_dump_registers
+
+    ; seems to have page tables enabled
+    bl _puts, exception_unsupported_ptb_msg
+    b _fw_start.hang
+    
+.can_dump_registers:
+    ; restore return register
+    pop rr
+    
+    bl _exception_putreg, REG_PC, fp
+    bl _exception_putreg, REG_SP, fp
+    bl _exception_putreg, REG_FP, fp
+    bl _exception_putreg, REG_CF, fp
+    bl _exception_putreg, REG_R0, fp
+    bl _exception_putreg, REG_R1, fp
+    bl _exception_putreg, REG_R2, fp
+    bl _exception_putreg, REG_R3, fp
+    bl _exception_putreg, REG_R4, fp
+    bl _exception_putreg, REG_R5, fp
+    bl _exception_putreg, REG_R6, fp
+    bl _exception_putreg, REG_R7, fp
+    bl _exception_putreg, REG_R8, fp
+    bl _exception_putreg, REG_R9, fp
+    bl _exception_putreg, REG_R10, fp
+    bl _exception_putreg, REG_R11, fp
+    bl _exception_putreg, REG_R12, fp
+    bl _exception_putreg, REG_R13, fp
+    bl _exception_putreg, REG_R14, fp
+    bl _exception_putreg, REG_R15, fp
+    bl _exception_putreg, REG_R16, fp
+    bl _exception_putreg, REG_RR, fp
+    bl _exception_putreg, REG_CR0, fp
+    bl _exception_putreg, REG_CR1, fp
+    bl _exception_putreg, REG_CR2, fp
+    bl _exception_putreg, REG_CR3, fp
+    bl _exception_putreg, REG_CR4, fp
+    bl _exception_putreg, REG_CR5, fp
+    bl _exception_putreg, REG_CR6, fp
+    bl _exception_putreg, REG_CR7, fp
+    bl _exception_putreg, REG_CR8, fp
+    bl _exception_putreg, REG_CR9, fp
 
     ;
     ; no iret needed, platform is panicking
