@@ -41,60 +41,81 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-static uint8_t glfw_key_to_ps2_set2(int key)
+kEmexKeyPhys glfw_key_to_kEmexKeyPhys(int key)
 {
     switch(key)
     {
-        case GLFW_KEY_A: return 0x1C;
-        case GLFW_KEY_B: return 0x32;
-        case GLFW_KEY_C: return 0x21;
-        case GLFW_KEY_D: return 0x23;
-        case GLFW_KEY_E: return 0x24;
-        case GLFW_KEY_F: return 0x2B;
-        case GLFW_KEY_G: return 0x34;
-        case GLFW_KEY_H: return 0x33;
-        case GLFW_KEY_I: return 0x43;
-        case GLFW_KEY_J: return 0x3B;
-        case GLFW_KEY_K: return 0x42;
-        case GLFW_KEY_L: return 0x4B;
-        case GLFW_KEY_M: return 0x3A;
-        case GLFW_KEY_N: return 0x31;
-        case GLFW_KEY_O: return 0x44;
-        case GLFW_KEY_P: return 0x4D;
-        case GLFW_KEY_Q: return 0x15;
-        case GLFW_KEY_R: return 0x2D;
-        case GLFW_KEY_S: return 0x1B;
-        case GLFW_KEY_T: return 0x2C;
-        case GLFW_KEY_U: return 0x3C;
-        case GLFW_KEY_V: return 0x2A;
-        case GLFW_KEY_W: return 0x1D;
-        case GLFW_KEY_X: return 0x22;
-        case GLFW_KEY_Y: return 0x35;
-        case GLFW_KEY_Z: return 0x1A;
+        case GLFW_KEY_A: return kEmexKeyPhysA;
+        case GLFW_KEY_B: return kEmexKeyPhysB;
+        case GLFW_KEY_C: return kEmexKeyPhysC;
+        case GLFW_KEY_D: return kEmexKeyPhysD;
+        case GLFW_KEY_E: return kEmexKeyPhysE;
+        case GLFW_KEY_F: return kEmexKeyPhysF;
+        case GLFW_KEY_G: return kEmexKeyPhysG;
+        case GLFW_KEY_H: return kEmexKeyPhysH;
+        case GLFW_KEY_I: return kEmexKeyPhysI;
+        case GLFW_KEY_J: return kEmexKeyPhysJ;
+        case GLFW_KEY_K: return kEmexKeyPhysK;
+        case GLFW_KEY_L: return kEmexKeyPhysL;
+        case GLFW_KEY_M: return kEmexKeyPhysM;
+        case GLFW_KEY_N: return kEmexKeyPhysN;
+        case GLFW_KEY_O: return kEmexKeyPhysO;
+        case GLFW_KEY_P: return kEmexKeyPhysP;
+        case GLFW_KEY_Q: return kEmexKeyPhysQ;
+        case GLFW_KEY_R: return kEmexKeyPhysR;
+        case GLFW_KEY_S: return kEmexKeyPhysS;
+        case GLFW_KEY_T: return kEmexKeyPhysT;
+        case GLFW_KEY_U: return kEmexKeyPhysU;
+        case GLFW_KEY_V: return kEmexKeyPhysV;
+        case GLFW_KEY_W: return kEmexKeyPhysW;
+        case GLFW_KEY_X: return kEmexKeyPhysX;
+        case GLFW_KEY_Y: return kEmexKeyPhysY;
+        case GLFW_KEY_Z: return kEmexKeyPhysZ;
 
-        case GLFW_KEY_0: return 0x45;
-        case GLFW_KEY_1: return 0x16;
-        case GLFW_KEY_2: return 0x1E;
-        case GLFW_KEY_3: return 0x26;
-        case GLFW_KEY_4: return 0x25;
-        case GLFW_KEY_5: return 0x2E;
-        case GLFW_KEY_6: return 0x36;
-        case GLFW_KEY_7: return 0x3D;
-        case GLFW_KEY_8: return 0x3E;
-        case GLFW_KEY_9: return 0x46;
+        case GLFW_KEY_0: return kEmexKeyPhys0;
+        case GLFW_KEY_1: return kEmexKeyPhys1;
+        case GLFW_KEY_2: return kEmexKeyPhys2;
+        case GLFW_KEY_3: return kEmexKeyPhys3;
+        case GLFW_KEY_4: return kEmexKeyPhys4;
+        case GLFW_KEY_5: return kEmexKeyPhys5;
+        case GLFW_KEY_6: return kEmexKeyPhys6;
+        case GLFW_KEY_7: return kEmexKeyPhys7;
+        case GLFW_KEY_8: return kEmexKeyPhys8;
+        case GLFW_KEY_9: return kEmexKeyPhys9;
 
-        case GLFW_KEY_SPACE: return 0x29;
-        case GLFW_KEY_ENTER: return 0x5A;
-        case GLFW_KEY_BACKSPACE: return 0x66;
-        case GLFW_KEY_TAB: return 0x0D;
-        case GLFW_KEY_ESCAPE: return 0x76;
+        case GLFW_KEY_SPACE: return kEmexKeyPhysSpace;
+        case GLFW_KEY_ENTER: return kEmexKeyPhysEnter;
+        case GLFW_KEY_BACKSPACE: return kEmexKeyPhysBackspace;
+        case GLFW_KEY_TAB: return kEmexKeyPhysTab;
+        case GLFW_KEY_ESCAPE: return kEmexKeyPhysEsc;
 
-        case GLFW_KEY_LEFT: return 0x6B;
-        case GLFW_KEY_RIGHT: return 0x74;
-        case GLFW_KEY_UP: return 0x75;
-        case GLFW_KEY_DOWN: return 0x72;
+        case GLFW_KEY_LEFT: return kEmexKeyPhysArrowLeft;
+        case GLFW_KEY_RIGHT: return kEmexKeyPhysArrowRight;
+        case GLFW_KEY_UP: return kEmexKeyPhysArrowUp;
+        case GLFW_KEY_DOWN: return kEmexKeyPhysArrowDown;
 
-        default: return 0;
+        case GLFW_KEY_LEFT_SHIFT: return kEmexKeyPhysLeftShift;
+        case GLFW_KEY_RIGHT_SHIFT: return kEmexKeyPhysRightShift;
+        case GLFW_KEY_LEFT_CONTROL: return kEmexKeyPhysLeftCtrl;
+        case GLFW_KEY_RIGHT_CONTROL: return kEmexKeyPhysRightCtrl;
+        case GLFW_KEY_LEFT_ALT: return kEmexKeyPhysLeftAlt;
+        case GLFW_KEY_RIGHT_ALT: return kEmexKeyPhysRightAlt;
+        case GLFW_KEY_LEFT_SUPER: return kEmexKeyPhysLeftGUI;
+        case GLFW_KEY_RIGHT_SUPER: return kEmexKeyPhysRightGUI;
+
+        case GLFW_KEY_F1: return kEmexKeyPhysF1;
+        case GLFW_KEY_F2: return kEmexKeyPhysF2;
+        case GLFW_KEY_F3: return kEmexKeyPhysF3;
+        case GLFW_KEY_F4: return kEmexKeyPhysF4;
+        case GLFW_KEY_F5: return kEmexKeyPhysF5;
+        case GLFW_KEY_F6: return kEmexKeyPhysF6;
+        case GLFW_KEY_F7: return kEmexKeyPhysF7;
+        case GLFW_KEY_F8: return kEmexKeyPhysF8;
+        case GLFW_KEY_F9: return kEmexKeyPhysF9;
+        case GLFW_KEY_F10: return kEmexKeyPhysF10;
+        case GLFW_KEY_F11: return kEmexKeyPhysF11;
+        case GLFW_KEY_F12: return kEmexKeyPhysF12;
+        default: return kEmexKeyPhysUnknown;
     }
 }
 
@@ -108,20 +129,19 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         return;
     }
 
-    uint8_t ps2_code = glfw_key_to_ps2_set2(key);
-    if(ps2_code == 0)
+    kEmexKeyPhys phys_key = glfw_key_to_kEmexKeyPhys(key);
+    if(phys_key == kEmexKeyPhysUnknown)
     {
         return;
     }
 
     if(action == GLFW_PRESS || action == GLFW_REPEAT)
     {
-        emex64_8042_send_keyboard(display->emex8042, ps2_code);
+        emex64_8042_send_keyboard_make(display->emex8042, phys_key);
     }
     else if(action == GLFW_RELEASE)
     {
-        emex64_8042_send_keyboard(display->emex8042, 0xF0);
-        emex64_8042_send_keyboard(display->emex8042, ps2_code);
+        emex64_8042_send_keyboard_break(display->emex8042, phys_key);
     }
 }
 
