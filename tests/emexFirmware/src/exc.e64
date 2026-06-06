@@ -248,39 +248,14 @@ _exception_handler:
 .can_dump_registers:
     ; restore return register
     pop rr
-    
-    bl _exception_putreg, REG_PC, fp
-    bl _exception_putreg, REG_SP, fp
-    bl _exception_putreg, REG_FP, fp
-    bl _exception_putreg, REG_CF, fp
-    bl _exception_putreg, REG_R0, fp
-    bl _exception_putreg, REG_R1, fp
-    bl _exception_putreg, REG_R2, fp
-    bl _exception_putreg, REG_R3, fp
-    bl _exception_putreg, REG_R4, fp
-    bl _exception_putreg, REG_R5, fp
-    bl _exception_putreg, REG_R6, fp
-    bl _exception_putreg, REG_R7, fp
-    bl _exception_putreg, REG_R8, fp
-    bl _exception_putreg, REG_R9, fp
-    bl _exception_putreg, REG_R10, fp
-    bl _exception_putreg, REG_R11, fp
-    bl _exception_putreg, REG_R12, fp
-    bl _exception_putreg, REG_R13, fp
-    bl _exception_putreg, REG_R14, fp
-    bl _exception_putreg, REG_R15, fp
-    bl _exception_putreg, REG_R16, fp
-    bl _exception_putreg, REG_RR, fp
-    bl _exception_putreg, REG_CR0, fp
-    bl _exception_putreg, REG_CR1, fp
-    bl _exception_putreg, REG_CR2, fp
-    bl _exception_putreg, REG_CR3, fp
-    bl _exception_putreg, REG_CR4, fp
-    bl _exception_putreg, REG_CR5, fp
-    bl _exception_putreg, REG_CR6, fp
-    bl _exception_putreg, REG_CR7, fp
-    bl _exception_putreg, REG_CR8, fp
-    bl _exception_putreg, REG_CR9, fp
+
+    mov r0, REG_PC
+    mov r1, REG_CR9
+.loop:
+    bl _exception_putreg, r0, fp
+    inc r0
+    cmp r0, r1
+    ble .loop
 
     ;
     ; no iret needed, platform is panicking
