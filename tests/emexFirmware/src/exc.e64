@@ -23,11 +23,32 @@
 ;
 
 section .data
-    exception_msg db "[!] panic because of exception code: 0x\0"
+    exception_msg db "\n-- panic --\nexception code: 0x\0"
+    exception2_msg db "reason: \0"
+
+; array of exception types as string
+section .data
+    exception_unknown_msg db "unknown\0"
+    exception_badaccess_msg db "bad access\0"
+    exception_permission_msg db "permission denied\0"
+    exception_badinstruction_msg db "bad instruction\0"
+    exception_badarithmetic_msg db "bad arithmetic\0"
+    exception_array_msg dq exception_unknown_msg exception_badaccess_msg exception_permission_msg exception_badinstruction_msg exception_badarithmetic_msg
+
+_exception_str_for_code:
+    mul r0, 8
+    add r0, exception_array_msg
+    ldq rr, r0
+    ret
 
 _exception_handler:
     bl _puts, exception_msg
     bl _putbase, cr2, 16
+    bl _putc, '\n'
+
+    bl _puts, exception2_msg
+    bl _exception_str_for_code, cr2
+    bl _puts, rr
     bl _putc, '\n'
 
     ;
