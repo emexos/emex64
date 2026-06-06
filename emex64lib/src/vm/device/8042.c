@@ -28,19 +28,6 @@
 #include <string.h>
 #include <pthread.h>
 
-static void update_status(emex64_8042_t *dev)
-{
-    bool has_data = (dev->kbd_head != dev->kbd_tail) || (dev->mouse_head != dev->mouse_tail);
-    if(has_data)
-    {
-        dev->status |= 0x01;
-    }
-    else
-    {
-        dev->status &= ~0x01;
-    }
-}
-
 emex64_8042_t *emex64_8042_alloc(emex64_machine_t *machine)
 {
     emex64_8042_t *dev = calloc(1, sizeof(emex64_8042_t));
@@ -55,9 +42,7 @@ emex64_8042_t *emex64_8042_alloc(emex64_machine_t *machine)
     dev->mouse_enabled = true;
     dev->status = 0x10;
 
-    if(!emex64_mmio_register(machine->mmio_bus, EMEX64_8042_BASE,
-                             EMEX64_8042_SIZE, dev,
-                             emex64_8042_read, emex64_8042_write))
+    if(!emex64_mmio_register(machine->mmio_bus, EMEX64_8042_BASE, EMEX64_8042_SIZE, dev, emex64_8042_read, emex64_8042_write))
     {
         free(dev);
         return NULL;
@@ -72,11 +57,9 @@ void emex64_8042_dealloc(emex64_8042_t *dev)
     free(dev);
 }
 
-static void try_raise_8042_irq(emex64_8042_t *dev)
+static void update_8042_interrupt(emex64_8042_t *dev)
 {
-    bool has_data = (dev->kbd_head != dev->kbd_tail) || (dev->mouse_head != dev->mouse_tail);
-
-    if(has_data)
+    if((dev->kbd_head != dev->kbd_tail) || (dev->mouse_head != dev->mouse_tail))
     {
         dev->status |= 0x01;
         emex64_raise_interrupt(dev->machine, EMEX64_IRQ_8042);
@@ -92,12 +75,16 @@ void emex64_8042_send_keyboard(emex64_8042_t *dev, uint8_t scancode)
     pthread_mutex_lock(&dev->lock);
 
     int next = (dev->kbd_tail + 1) % 64;
-    if(next != dev->kbd_head)
+
+    if(next == dev->kbd_head)
     {
-        dev->kbd_buf[dev->kbd_tail] = scancode;
-        dev->kbd_tail = next;
-        try_raise_8042_irq(dev);
+        dev->kbd_head = (dev->kbd_head + 1) % 64;
     }
+
+    dev->kbd_buf[dev->kbd_tail] = scancode;
+    dev->kbd_tail = next;
+
+    update_8042_interrupt(dev);
 
     pthread_mutex_unlock(&dev->lock);
 }
@@ -107,20 +94,21 @@ void emex64_8042_send_mouse(emex64_8042_t *dev, uint8_t byte)
     pthread_mutex_lock(&dev->lock);
 
     int next = (dev->mouse_tail + 1) % 64;
-    if(next != dev->mouse_head)
+
+    if(next == dev->mouse_head)
     {
-        dev->mouse_buf[dev->mouse_tail] = byte;
-        dev->mouse_tail = next;
-        try_raise_8042_irq(dev);
+        dev->mouse_head = (dev->mouse_head + 1) % 64;
     }
+
+    dev->mouse_buf[dev->mouse_tail] = byte;
+    dev->mouse_tail = next;
+
+    update_8042_interrupt(dev);
 
     pthread_mutex_unlock(&dev->lock);
 }
 
-uint64_t emex64_8042_read(emex64_core_t *core,
-                          void *device,
-                          uint64_t offset,
-                          int size)
+uint64_t emex64_8042_read(emex64_core_t *core, void *device, uint64_t offset, int size)
 {
     emex64_8042_t *dev = device;
     uint64_t val = 0;
@@ -139,7 +127,8 @@ uint64_t emex64_8042_read(emex64_core_t *core,
             val = dev->mouse_buf[dev->mouse_head];
             dev->mouse_head = (dev->mouse_head + 1) % 64;
         }
-        update_status(dev);
+
+        update_8042_interrupt(dev);
     } 
     else if(offset == 0x08)
     {
