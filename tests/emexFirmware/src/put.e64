@@ -22,9 +22,19 @@
 ; SOFTWARE.
 ;
 
+; normal ass data for the system
 section .data
     putc_uart_logo dq "\n         +++++++++++++\n        ++++++++++++++\n       +++++++++++++++\n      ++++++++++++++++\n     +++++      ++++++\n    +++++      ++++++ \n   +++++      ++++++  \n  +++++      ++++++   \n +++++      ++++++    \n+++++      ++++++     \n+++++      +++++      \n +++++      +++       \n  +++++      +        \n   +++++              \n    +++++             \n     +++++            \n      ++++++++++++++++\n       +++++++++++++++\n        ++++++++++++++\n         +++++++++++++\n\nemexLabs(c) 2026\n\n\0"
     putc_sym dq _gui_putc
+
+; memory units for _put_mem
+section .data
+    mem_unit_b db "B\0"
+    mem_unit_kb db "KB\0"
+    mem_unit_mb db "MB\0"
+    mem_unit_gb db "GB\0"
+    mem_unit_tb db "TB\0"
+    mem_unit_ptrs dq mem_unit_b, mem_unit_kb, mem_unit_mb, mem_unit_gb, mem_unit_tb
 
 _putc:
     ldq r1, putc_sym
@@ -48,7 +58,7 @@ _puts:
     bl _putc, r1
     bnz r1, .start
     ret
-
+    
 _putbase:
     clr rr
     bnz r0, .start
@@ -74,4 +84,63 @@ _putbase:
     pop r0
     bl _putc
     bnz r0, .print
+    ret
+
+;
+; r0: main memory amount
+; r1: amount to match the units to
+;
+_put_mem:
+    push r0
+    push r1
+    clr r2
+    pop r3
+    bz r3, .auto
+    mov r0, r3
+
+.auto:
+    cmp r0, 1024
+    blt .unit_ok
+    cmp r2, 4
+    bge .unit_ok
+    div r0, 1024
+    inc r2
+    b .auto
+    
+.unit_ok:
+    pop r0
+    mov r4, r0
+    mov r3, r2
+.whole_loop:
+    bz r3, .whole_done
+    div r0, 1024
+    dec r3
+    b .whole_loop
+
+.whole_done:
+    bl _putbase, r0, 10
+
+    bz r2, .suffix
+
+    bl _putc, '.'
+    mov r3, r2
+    mov r5, 1
+.unit_sz:
+    bz r3, .have_sz
+    mul r5, 1024
+    dec r3
+    b .unit_sz
+
+.have_sz:
+    mod r4, r4, r5
+    mul r6, r4, 10
+    div r6, r5
+    bl _putbase, r6, 10
+
+.suffix:
+    mul r2, 8
+    add r2, mem_unit_ptrs
+    ldq r0, r2
+    bl _puts, r0
+    bl _putc, ' '
     ret
