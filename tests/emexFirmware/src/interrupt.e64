@@ -29,12 +29,12 @@
 %define% INTC_REG_ACK           0x1FE00020
 %define% INTC_REG_CURRENT       0x1FE00028
 
-%define% IRQ_EXCEPTION          0
+%define% IRQ_EXCEPTION  0
 %define% IRQ_TIMER		1
 %define% IRQ_UART		2
 %define% IRQ_DISK		3
-%define% IRQ_NETWORK		4
-%define% IRQ_SOFTWARE		5
+%define% IRQ_NETWORK	4
+%define% IRQ_SOFTWARE	5
 
 section .bss
     ivec dq 63
@@ -53,34 +53,30 @@ _interrupt_init:
 
 _interrupt_register_handler:
     ; calculate interrupt vector handler slot address
-    mov r2, ivec
     mul r3, r0, 8
-    add r2, r3
+    add r2, ivec, r3
 
     ; insert into vector table
     stq r2, r1
 
     ; now calculate bit and or it
     ldq r2, INTC_REG_ENABLED
-    mov r1 0x1
-    shl r1, r0
+    shl r1, 0x1, r0
     or r2, r1
     stq INTC_REG_ENABLED, r2
     ret
 
 _interrupt_unregister_handler:
     ; calculate interupt vector handler slot address
-    mov r1, ivec
     mul r2, r0, 8
-    add r1, r2
+    add r1, ivec, r2
 
     ; remove handler from vector table
     stq r2, 0x0
 
     ; now calculate bit and or it
     ldq r2, INTC_REG_ENABLED
-    mov r1 0x1
-    shl r1, r0
+    shl r1, 0x1, r0
     not r1
     and r2, r1
     stq INTC_REG_ENABLED, r2

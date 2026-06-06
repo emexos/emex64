@@ -22,20 +22,20 @@
 ; SOFTWARE.
 ;
 
-_strlen:
-    clr rr                      ; clearing return register
-.loop:
-    ldb r1, r0                  ; loading byte from address
-    inc r0, rr                  ; incrementing address
-    bnz r1, .loop               ; if not reached a null terminator yet continue till we reached one
-    ret
+;_strlen:
+;    clr rr                      ; clearing return register
+;.loop:
+;    ldb r1, r0                  ; loading byte from address
+;    inc r0, rr                  ; incrementing address
+;    bnz r1, .loop               ; if not reached a null terminator yet continue till we reached one
+;    ret
 
-_strdup:
-    bl _strlen, r0              ; getting size of string
-    mov r1, rr
-    bl _kmalloc, r1             ; allocating memory for string
-    mov r2, rr
-    bz r2, .null_exception      ; null pointer checking allocation
-    bl _memcpy, r2, r0, r1      ; copying string over
-.null_exception:
-    ret
+;_strdup:
+;    bl _strlen, r0              ; getting size of string
+;    mov r1, rr
+;    bl _kmalloc, r1             ; allocating memory for string
+;    mov r2, rr
+;    bz r2, .null_exception      ; null pointer checking allocation
+;    bl _memcpy, r2, r0, r1      ; copying string over
+;.null_exception:
+;    ret
