@@ -22,10 +22,13 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
+
+#include <emex64lib/support/likely.h>
+
 #include <emex64lib/vm/mmu.h>
 #include <emex64lib/vm/core.h>
 #include <emex64lib/vm/machine.h>
-#include <stdio.h>
 
 typedef struct emex64_mmu_entry_lookup {
     bool fail;
@@ -33,15 +36,15 @@ typedef struct emex64_mmu_entry_lookup {
 } emex64_mmu_entry_lookup_t;
 
 static inline emex64_mmu_entry_lookup_t emex64_mmu_lookup_pte(emex64_core_t *core,
-                                                          uint64_t pt_addr,
-                                                          uint16_t idx)
+                                                              uint64_t pt_addr,
+                                                              uint16_t idx)
 {
     /*
      * bounds check pt_addr and check if it
      * can be even a table.
      */
     pt_addr = EMEX64_PAGE_ROUND_DOWN(pt_addr);
-    if(!EMEX64_IN_PHYS_MEMORY(pt_addr, EMEX64_PAGE_SIZE, core->machine->memory->memory, core->machine->memory->memory_size))
+    if(unlikely(!EMEX64_IN_PHYS_MEMORY(pt_addr, EMEX64_PAGE_SIZE, core->machine->memory->memory, core->machine->memory->memory_size)))
     {
         return (emex64_mmu_entry_lookup_t){ .fail = true, .pte = 0x0 };
     }
@@ -50,7 +53,7 @@ static inline emex64_mmu_entry_lookup_t emex64_mmu_lookup_pte(emex64_core_t *cor
     uint64_t *pt = (uint64_t*)&core->machine->memory->memory[pt_addr];
     uint64_t pte = pt[idx];
 
-    if(!((pte & EMEX64_MMU_MASK_FLAGS) & EMEX64_MMU_PT_PRESENT))
+    if(unlikely(!((pte & EMEX64_MMU_MASK_FLAGS) & EMEX64_MMU_PT_PRESENT)))
     {
         return (emex64_mmu_entry_lookup_t){ .fail = true, .pte = 0x0 };
     }
@@ -59,13 +62,13 @@ static inline emex64_mmu_entry_lookup_t emex64_mmu_lookup_pte(emex64_core_t *cor
 }
 
 static inline bool emex64_mmu_access_pxd(emex64_core_t *core,
-                                       uint64_t pt_addr,
-                                       uint16_t pxd_idx,
-                                       uint8_t acc,
-                                       uint64_t *oaddr)
+                                         uint64_t pt_addr,
+                                         uint16_t pxd_idx,
+                                         uint8_t acc,
+                                         uint64_t *oaddr)
 {
     emex64_mmu_entry_lookup_t lookup = emex64_mmu_lookup_pte(core, pt_addr, pxd_idx);
-    if(lookup.fail)
+    if(unlikely(lookup.fail))
     {
         return false;
     }
@@ -85,16 +88,23 @@ static inline bool emex64_mmu_access_pxd(emex64_core_t *core,
         }
 
         /* initial flag check */
-        if(((lookup.pte & EMEX64_MMU_MASK_FLAGS) & checkflg) != checkflg)
+        uint64_t mmu_flags = (lookup.pte & EMEX64_MMU_MASK_FLAGS);
+        if(unlikely((mmu_flags & checkflg) != checkflg))
         {
-            /* TODO: cause page fault */
+            return false;
+        }
+
+        /* checking if dirty */
+        if((mmu_flags & EMEX64_MMU_PT_DIRTY) == EMEX64_MMU_PT_DIRTY)
+        {
+            /* page is dirty! will cause a page fault! */
             return false;
         }
     }
 
     uint64_t pfn = (lookup.pte & EMEX64_MMU_MASK_PFN) >> 8;
     uint64_t physaddr = EMEX64_PAGE_ROUND_DOWN(pfn << 13);
-    if(!EMEX64_IN_PHYS_MEMORY(physaddr, EMEX64_PAGE_SIZE, core->machine->memory->memory, core->machine->memory->memory_size))
+    if(unlikely(!EMEX64_IN_PHYS_MEMORY(physaddr, EMEX64_PAGE_SIZE, core->machine->memory->memory, core->machine->memory->memory_size)))
     {
         return false;
     }
@@ -110,7 +120,7 @@ bool emex64_mmu_access(emex64_core_t *core,
                      uint64_t *paddr)
 {
     /* vaddr cannot be bigger than 53bits */
-    if(vaddr >> 53)
+    if(unlikely(vaddr >> 53))
     {
         /* not a valid address to begin with */
         core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
