@@ -159,6 +159,13 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
         {
             inv->line[i]->type = kAssemblerLineTypeMacroDefinition;
         }
+        else if(strcmp(inv->line[i]->token[0]->str, "%if%") == 0 ||
+                strcmp(inv->line[i]->token[0]->str, "%elseif%") == 0 ||
+                strcmp(inv->line[i]->token[0]->str, "%else%") == 0 ||
+                strcmp(inv->line[i]->token[0]->str, "%endif%") == 0)
+        {
+            inv->line[i]->type = kAssemblerLineTypeMacroCondition;
+        }
     }
 
     /*

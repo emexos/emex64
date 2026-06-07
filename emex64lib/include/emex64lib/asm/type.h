@@ -40,6 +40,7 @@ enum kAssemblerLineType: uint8_t {
     kAssemblerLineTypeSection,
     kAssemblerLineTypeSectionData,
     kAssemblerLineTypeMacroDefinition,
+    kAssemblerLineTypeMacroCondition,
 };
 
 typedef struct assembler_token {

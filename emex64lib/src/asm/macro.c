@@ -59,7 +59,7 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
         return false;
     }
 
-    /* adding stuff */
+    /* adding macro definitions */
     c = 0;
     for(uint64_t i = 0; i < inv->line_cnt; i++)
     {
@@ -77,51 +77,147 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
         }
     }
 
-    /* now replacing */
+    /* expand macro definitions */
     for(uint64_t li = 0; li < inv->line_cnt; li++)
     {
-        if(inv->line[li]->type != kAssemblerLineTypeMacroDefinition)
+        for(uint64_t ti = 0; ti < inv->line[li]->token_cnt; ti++)
         {
-            for(uint64_t ti = 0; ti < inv->line[li]->token_cnt; ti++)
+            /* matching macro */
+            uint16_t macro_nest_remaining = UINT16_MAX;
+
+        repeat:
+            for(uint64_t ami = 0; ami < c; ami++)
             {
-                for(uint64_t ami = 0; ami < c; ami++)
+                if(strcmp(inv->line[li]->token[ti]->str, am[ami].match) == 0)
                 {
-                    /* matching macro */
-                    if(strcmp(inv->line[li]->token[ti]->str, am[ami].match) == 0)
+                    uint64_t old_token_cnt = inv->line[li]->token_cnt;
+                    uint64_t new_tokens = (am[ami].inject_token_cnt);
+                    uint64_t extra = new_tokens - 1;
+                    uint64_t column_number = inv->line[li]->token[ti]->column_num;
+
+                    if(extra > 0)
                     {
-                        uint64_t old_token_cnt = inv->line[li]->token_cnt;
-                        uint64_t new_tokens = (am[ami].inject_token_cnt);
-                        uint64_t extra = new_tokens - 1;
-                        uint64_t column_number = inv->line[li]->token[ti]->column_num;
+                        /* reallocating space to insert the macro */
+                        inv->line[li]->token_cnt += extra;
+                        inv->line[li]->token = realloc(inv->line[li]->token, inv->line[li]->token_cnt * sizeof(assembler_token_t*));
 
-                        if(extra > 0)
-                        {
-                            /* reallocating space to insert the macro */
-                            inv->line[li]->token_cnt += extra;
-                            inv->line[li]->token = realloc(inv->line[li]->token, inv->line[li]->token_cnt * sizeof(assembler_token_t*));
+                        /* destroying affected token */
+                        free(inv->line[li]->token[ti]->str);
+                        free(inv->line[li]->token[ti]);
 
-                            /* destroying affected token */
-                            free(inv->line[li]->token[ti]->str);
-                            free(inv->line[li]->token[ti]);
-
-                            /* making space for macro to be inserted */
-                            memmove(&inv->line[li]->token[ti + new_tokens], &inv->line[li]->token[ti + 1], (old_token_cnt - ti - 1) * sizeof(assembler_token_t));
-                        }
-
-                        for(uint64_t k = 0; k < new_tokens; k++)
-                        {
-                            assembler_token_t *at = calloc(1, sizeof(assembler_token_t));
-                            at->al = inv->line[li];
-                            at->str = strdup(am[ami].inject_token[k]);
-                            at->column_num = column_number;
-                            inv->line[li]->token[ti + k] = at;
-                        }
-
-                        break;
+                        /* making space for macro to be inserted */
+                        memmove(&inv->line[li]->token[ti + new_tokens], &inv->line[li]->token[ti + 1], (old_token_cnt - ti - 1) * sizeof(assembler_token_t));
                     }
+
+                    for(uint64_t k = 0; k < new_tokens; k++)
+                    {
+                        assembler_token_t *at = calloc(1, sizeof(assembler_token_t));
+                        at->al = inv->line[li];
+                        at->str = strdup(am[ami].inject_token[k]);
+                        at->column_num = column_number;
+                        inv->line[li]->token[ti + k] = at;
+                    }
+
+                    macro_nest_remaining--;
+                    if(macro_nest_remaining == 0)
+                    {
+                        diag_error(inv->line[li]->token[ti], "macro nesting limit of %d was reached\n", UINT16_MAX);
+                        return false;
+                    }
+
+                    goto repeat;
                 }
             }
         }
+    }
+
+    /* expand macro conditions */
+    bool in_a_condition = false;
+    bool condition_met = false;
+    assembler_line_t *last_condition_line = NULL;
+
+    for(uint64_t li = 0; li < inv->line_cnt; li++)
+    {
+        if(inv->line[li]->type == kAssemblerLineTypeMacroDefinition)
+        {
+            if(in_a_condition)
+            {
+                diag_error(inv->line[li]->token[0], "%%define%% was used in a condition, which doesn't work and is WIP.\n");
+                return false;
+            }
+        }
+        else if(inv->line[li]->type == kAssemblerLineTypeMacroCondition)
+        {
+            if(strcmp(inv->line[li]->token[0]->str, "%if%") == 0)
+        if_macro_condition_expand:
+            {
+                if(in_a_condition == true)
+                {
+                    diag_error(inv->line[li]->token[0], "%%if%% was defined inside another %%if%%. condition nesting is still WIP.\n");
+                    return false;
+                }
+
+                if(inv->line[li]->token_cnt >= 2 && strlen(inv->line[li]->token[1]->str) >= 0)
+                {
+                    parser_return_t pret = parse_value_from_string(inv->line[li]->token[1]->str);
+                    if(pret.type == emexParserValueTypeNumber)
+                    {
+                        condition_met = (pret.value != 0);
+                    }
+                    else
+                    {
+                        condition_met = true;
+                    }
+                }
+                else
+                {
+                    condition_met = false;
+                }
+
+                in_a_condition = true;
+            }
+            else if(strcmp(inv->line[li]->token[0]->str, "%elseif%") == 0)
+            {
+                if(in_a_condition == false)
+                {
+                    diag_error(inv->line[li]->token[0], "%%elseif%% was defined but no %%if%% was defined prior.\n");
+                    return false;
+                }
+                goto if_macro_condition_expand;
+            }
+            else if(strcmp(inv->line[li]->token[0]->str, "%else%") == 0)
+            {
+                if(in_a_condition == false)
+                {
+                    diag_error(inv->line[li]->token[0], "%%else%% was defined but no %%if%% was defined prior.\n");
+                    return false;
+                }
+                condition_met = !condition_met;
+            }
+            else if(strcmp(inv->line[li]->token[0]->str, "%endif%") == 0)
+            {
+                if(in_a_condition == false)
+                {
+                    diag_error(inv->line[li]->token[0], "%%endif%% was defined but no %%if%% was defined prior.\n");
+                    return false;
+                }
+                in_a_condition = false;
+                condition_met = false;
+            }
+
+            last_condition_line = inv->line[li];
+            inv->line[li]->type = kAssemblerLineTypeIgnore;
+        }
+        else if(in_a_condition && !condition_met)
+        {
+            inv->line[li]->type = kAssemblerLineTypeIgnore;
+        }
+    }
+
+    if(in_a_condition)
+    {
+        diag_error(last_condition_line->token[0], "%%if%% was defined but no matching %%endif%% was found.\n");
+        return false;
     }
 
     free(am);
