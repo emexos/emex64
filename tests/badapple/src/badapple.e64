@@ -78,8 +78,10 @@ _start:
     bl _interrupt_register_handler, IRQ_TIMER, _timer_handler
 
     ldq r0, TIMER_FREQ
-    div r0, 60
+    div r0, 30
     stq TIMER_COMPARE, r0
+    stq TIMER_COUNT, 0
+    stq TIMER_CTRL, 0x7
 %endif%
 
     ; checking if display device is available
@@ -100,10 +102,7 @@ _start:
     ; advances to the next frame
 .video_frame_next:
 %ifdef% FULL
-    stq TIMER_CTRL, 0x7
     hlt
-    stq TIMER_CTRL, 0x0
-    stq TIMER_COUNT, 0
 %endif%
 
     cmp r5, 6520
