@@ -33,9 +33,9 @@
 #include <emex64lib/asm/code.h>
 #include <emex64lib/asm/cmptok.h>
 
-bool assembler_code_parse(assembler_invocation_t *inv,
-                          const char **filev,
-                          int filec)
+bool assembler_code_preparse(assembler_invocation_t *inv,
+                             const char **filev,
+                             int filec)
 {
     /*
      * preparing compiler invocation to
@@ -152,6 +152,34 @@ bool assembler_code_parse(assembler_invocation_t *inv,
         }
     }
 
+    /* token pretype evaluation */
+    bool section_mode = false;
+    for(unsigned long i = 0; i < inv->line_cnt; i++)
+    {
+        if(strcmp(inv->line[i]->token[0]->str, "%define%") == 0)
+        {
+            inv->line[i]->type = kAssemblerLineTypeMacroDefinition;
+            continue;
+        }
+    }
+
+    /*
+     * unmapping each code file, but this
+     * shall not be the case bruh, we shall
+     * use linked lists so we dont have to
+     * store the code into the files
+     * anyways.
+     */
+    for(int i = 0; i < filec; i++)
+    {
+        emex_file_close(inv->file[i]);
+    }
+
+    return true;
+}
+
+bool assembler_code_parse(assembler_invocation_t *inv)
+{
     /* token type evaluation */
     bool section_mode = false;
     for(unsigned long i = 0; i < inv->line_cnt; i++)
@@ -224,18 +252,6 @@ bool assembler_code_parse(assembler_invocation_t *inv,
          * differentiation. 
          */
         inv->line[i]->type = section_mode ? kAssemblerLineTypeSectionData : kAssemblerLineTypeAssembly;
-    }
-
-    /*
-     * unmapping each code file, but this
-     * shall not be the case bruh, we shall
-     * use linked lists so we dont have to
-     * store the code into the files
-     * anyways.
-     */
-    for(int i = 0; i < filec; i++)
-    {
-        emex_file_close(inv->file[i]);
     }
 
     return true;
