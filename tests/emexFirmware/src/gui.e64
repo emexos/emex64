@@ -22,19 +22,12 @@
 ; SOFTWARE.
 ;
 
-%define% FB_ENABLED     0x1FF00000
-%define% FB_HEIGHT      0x1FF00001
-%define% FB_WIDTH       0x1FF00003
-%define% FB_FRAMEBUFFER 0x1FF00305
-%define% FB_TEXT_COLOR  0xFF
+%include% <emex64.e64h>
 
 section .data
     gui_line dw 0
     gui_column dw 0
 
-;
-; r0: character
-;
 _gui_putc:
     bz r0, .end
 

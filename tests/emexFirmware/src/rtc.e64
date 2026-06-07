@@ -22,13 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define% RTC_SECONDS    0x1FE00200
-%define% RTC_MINUTES    0x1FE00204
-%define% RTC_HOURS      0x1FE00208
-%define% RTC_DAY        0x1FE0020C
-%define% RTC_MONTH      0x1FE00210
-%define% RTC_YEAR       0x1FE00214
-%define% RTC_WEEKDAY    0x1FE00218
+%include% <emex64.e64h>
 
 section .data
     time db "[fw] date: \0"

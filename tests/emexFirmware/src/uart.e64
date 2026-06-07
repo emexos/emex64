@@ -22,10 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define% UART_DATA            0x1FE00300
-%define% UART_STATUS          0x1FE00304
-%define% UART_STATUS_RX_READY 0x01
-%define% UART_STATUS_TX_EMPTY 0x02
+%include% <emex64.e64h>
 
 _uart_putc:
 .start:

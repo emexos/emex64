@@ -22,20 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define% INTC_REG_PENDING       0x1FE00000
-%define% INTC_REG_ENABLED       0x1FE00008
-%define% INTC_REG_CTRL          0x1FE00010
-%define% INTC_REG_VECTOR        0x1FE00018
-%define% INTC_REG_ACK           0x1FE00020
-%define% INTC_REG_CURRENT       0x1FE00028
-
-%define% IRQ_EXCEPTION  0
-%define% IRQ_TIMER		1
-%define% IRQ_UART		2
-%define% IRQ_DISK		3
-%define% IRQ_NETWORK	4
-%define% IRQ_SOFTWARE	5
-%define% IRQ_8042       6
+%include% <emex64.e64h>
 
 section .bss
     ivec dq 63

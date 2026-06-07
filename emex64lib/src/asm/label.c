@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -142,24 +142,6 @@ bool assembler_label_append(assembler_token_t *at)
 
     inv->label[inv->label_cnt].at_link = at;
     inv->label[inv->label_cnt++].name = name;
-
-    return true;
-}
-
-bool assembler_label_insert_start_entry(assembler_invocation_t *inv)
-{
-    /* finding start label */
-    assembler_label_t *label = assembler_label_lookup(inv, inv->options.start_entry_name);
-    if(label == NULL)
-    {
-        diag_error(NULL, "\"%s\" label not found, cannot produce boot image\n", inv->options.start_entry_name);
-        return false;
-    }
-
-    /* writing start address into the start of the image */
-    fdwalker_seek(inv->fdwalker, 0, 0);
-    assembler_emit_opcode(inv, kEmex64OpcodeB);
-    assembler_emit_imm64(inv, label->addr);
 
     return true;
 }

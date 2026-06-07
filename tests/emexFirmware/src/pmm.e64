@@ -27,7 +27,7 @@ section .bss
     pmm_master_ptr dq 1                             ; address that points at the main page
     pmm_max_pages dq 1                              ; count of pages
 
-%define% PAGE_SIZE 0x2000                           ; 8K pages
+%include% <emex64.e64h>
 
 _pmm_page_addr:
     mul rr, r0, PAGE_SIZE                           ; page number by size equals address

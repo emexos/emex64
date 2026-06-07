@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <emex64lib/support/diag.h>
 
@@ -35,6 +36,7 @@
 #include <emex64lib/asm/emit.h>
 #include <emex64lib/asm/section.h>
 #include <emex64lib/asm/macro.h>
+#include <emex64lib/asm/elf.h>
 
 assembler_invocation_t *assembler_invocation_alloc(const char *output_path)
 {
@@ -63,6 +65,12 @@ assembler_invocation_t *assembler_invocation_alloc(const char *output_path)
 
     fdwalker_init(inv->fdwalker, fd, BW_LITTLE_ENDIAN);
     fdwalker_seek(inv->fdwalker, 10, 0);
+
+    /* section boundaries */
+    inv->data_section_start = UINT64_MAX;
+    inv->data_section_end = UINT64_MAX;
+    inv->bss_section_start = UINT64_MAX;
+    inv->bss_section_size = 0;
 
     /* setting default values */
     inv->options = assembler_options_default();
@@ -107,10 +115,10 @@ bool assembler_invocation_emit(assembler_invocation_t *inv,
        !assembler_label_prealloc(inv) ||
        !assembler_section_parse(inv) ||
        !assembler_emit(inv) ||
-       !assembler_label_insert_start_entry(inv))
+       !assembler_elf_emit(inv))
     {
         return false;
     }
-
+    
     return true;
 }

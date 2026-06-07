@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,7 @@
 
 typedef struct assembler_options {
     bool page_align;                /* default: true */
-    bool absolute_addr_align;       /* default: true */
     bool offset_branch;             /* default: true */
-    const char *start_entry_name;   /* default: _start */
     bool warning_error;             /* default: false */
     bool warning_deprecated;        /* default: true */
 } assembler_options_t;

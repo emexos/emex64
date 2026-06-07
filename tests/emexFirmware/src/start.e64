@@ -22,8 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define% PLATFORM_PWR   0x1FE00500
-%define% FB_ENABLED     0x1FE00700
+%include% <emex64.e64h>
 
 section .data
     fw_font_test_msg db "[fw] firmware font test\n     ABCDEFGHIJKLMNOPQRSTUVWXYZ\n     abcdefghijklmnopqrstuvwxyz\n     0123456789\n     @#%^&*()!<>?:;\n\0"

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdint.h>
 #include <errno.h>
 
 #include <emex64lib/support/parser.h>
@@ -53,6 +54,12 @@ bool assembler_section_parse(assembler_invocation_t *inv)
             {
                 /* so relocation never breaks */
                 fdwalker_align_byte(inv->fdwalker);
+
+                /* record data section start for ELF emit */
+                if(inv->data_section_start == UINT64_MAX)
+                {
+                    inv->data_section_start = fdwalker_bytes_used(inv->fdwalker);
+                }
 
                 /* iterating till section data is over */
                 i++;
@@ -229,6 +236,12 @@ bool assembler_section_parse(assembler_invocation_t *inv)
         }
     }
 
+    /* record data section end */
+    if(inv->data_section_start != UINT64_MAX)
+    {
+        inv->data_section_end = fdwalker_bytes_used(inv->fdwalker);
+    }
+
     if(inv->options.page_align)
     {
         inv->fdwalker->byte_pos = align_up(inv->fdwalker->byte_pos, 0x2000);
@@ -244,6 +257,12 @@ bool assembler_section_parse(assembler_invocation_t *inv)
             {
                 /* so relocation never breaks */
                 fdwalker_align_byte(inv->fdwalker);
+
+                /* record bss start */
+                if(inv->bss_section_start == UINT64_MAX)
+                {
+                    inv->bss_section_start = fdwalker_bytes_used(inv->fdwalker);
+                }
                 
                 /* finding variable type */
                 i++;
@@ -301,6 +320,13 @@ bool assembler_section_parse(assembler_invocation_t *inv)
                 i--;
             }
         }
+    }
+
+    /* record bss section size */
+    if(inv->bss_section_start != UINT64_MAX)
+    {
+        uint64_t bss_end = fdwalker_bytes_used(inv->fdwalker);
+        inv->bss_section_size = bss_end > inv->bss_section_start ? bss_end - inv->bss_section_start : 0;
     }
 
     if(inv->options.page_align)

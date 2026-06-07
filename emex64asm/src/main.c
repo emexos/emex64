@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@
 #include <emex64lib/asm/emit.h>
 #include <emex64lib/asm/section.h>
 #include <emex64lib/asm/macro.h>
+#include <emex64lib/asm/elf.h>
 
 int main(int argc, char *argv[])
 {
@@ -44,11 +45,13 @@ int main(int argc, char *argv[])
     char **files = calloc(argc, sizeof(char *));
 
     /* invocation settings */
-    const char *start_entry_name = "_start";
     bool page_align = true;
-    bool absolute_addr_align = true;
     bool warning_deprecated = true;
     bool offset_branch = true;
+
+    /* include search paths */
+    size_t inc_dir_cnt = 0;
+    char **inc_dirs = NULL;
 
     /* macros passed to assembler arguments */
     uint64_t macro_cnt = 0;
@@ -85,14 +88,6 @@ int main(int argc, char *argv[])
             else if(strcmp(flag, "no_page_align") == 0)
             {
                 page_align = false;
-            }
-            else if(strcmp(flag, "absolute_addr_align") == 0)
-            {
-                absolute_addr_align = true;
-            }
-            else if(strcmp(flag, "no_absolute_addr_align") == 0)
-            {
-                absolute_addr_align = false;
             }
             else if(strcmp(flag, "offset_branch") == 0)
             {
@@ -146,25 +141,6 @@ int main(int argc, char *argv[])
                 diag_error(NULL, "unknown warning flag '%s'\n", flag);
                 goto failed;
             }
-        }
-        else if(strncmp(argv[i], "-e", 2) == 0)
-        {
-            const char *flag;
-            if(argv[i][2] != '\0')
-            {
-                flag = argv[i] + 2;
-            }
-            else if(i + 1 < argc)
-            {
-                flag = argv[++i];
-            }
-            else
-            {
-                diag_error(NULL, "missing argument to '-e'\n");
-                goto failed;
-            }
-
-            start_entry_name = flag;
         }
         else if(strncmp(argv[i], "-D", 2) == 0)
         {
@@ -232,6 +208,25 @@ int main(int argc, char *argv[])
             macro[macro_slot].match = match;
             macro[macro_slot].value = value;
         }
+        else if(strncmp(argv[i], "-I", 2) == 0)
+        {
+            const char *dir;
+            if(argv[i][2] != '\0')
+            {
+                dir = argv[i] + 2;
+            }
+            else if(i + 1 < argc)
+            {
+                dir = argv[++i];
+            }
+            else
+            {
+                diag_error(NULL, "missing argument to '-I'\n");
+                goto failed;
+            }
+            inc_dirs = realloc(inc_dirs, (inc_dir_cnt + 1) * sizeof(char*));
+            inc_dirs[inc_dir_cnt++] = strdup(dir);
+        }
         else if(argv[i][0] != '-')
         {
             files[file_count++] = strdup(argv[i]);
@@ -246,15 +241,13 @@ int main(int argc, char *argv[])
     /* checking for output path */
     if(!output_path)
     {
-        diag_warn(NULL, "no output binary specified, falling back to a.out\n");
-        output_path = "a.out";
+        diag_warn(NULL, "no output binary specified, falling back to a.o\n");
+        output_path = "a.o";
     }
 
     assembler_options_t options = assembler_options_default();
     options.page_align = page_align;
-    options.absolute_addr_align = absolute_addr_align;
     options.offset_branch = offset_branch;
-    options.start_entry_name = start_entry_name;
     options.warning_error = warning_error;
     options.warning_deprecated = warning_deprecated;
 
@@ -268,6 +261,8 @@ int main(int argc, char *argv[])
 
     inv->definition = macro;
     inv->definition_cnt = macro_cnt;
+    inv->include_dirs = inc_dirs;
+    inv->include_dir_cnt = inc_dir_cnt;
 
     bool succeeded = assembler_invocation_emit(inv, file_count, files);
     for(int i = 0; i < file_count; i++)

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,211 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <limits.h>
 
 #include <emex64lib/support/diag.h>
 
 #include <emex64lib/asm/code.h>
 #include <emex64lib/asm/cmptok.h>
+
+typedef struct expand_entry {
+    char    *source_path;
+    char    *code;
+    size_t  len;
+} expand_entry_t;
+
+static char *find_header(const char *name,
+                         const char *source_dir,
+                         const char **inc_dirs,
+                         size_t inc_cnt)
+{
+    char buf[PATH_MAX];
+
+    if(source_dir)
+    {
+        snprintf(buf, sizeof(buf), "%s/%s", source_dir, name);
+        if(access(buf, R_OK) == 0)
+        {
+            return strdup(buf);
+        }
+    }
+
+    for(size_t i = 0; i < inc_cnt; i++)
+    {
+        snprintf(buf, sizeof(buf), "%s/%s", inc_dirs[i], name);
+        if(access(buf, R_OK) == 0)
+        {
+            return strdup(buf);
+        }
+    }
+
+    return NULL;
+}
+
+static char *slurp_file(const char *path, size_t *out_len)
+{
+    FILE *f = fopen(path, "rb");
+    if(!f)
+    {
+        return NULL;
+    }
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if(sz < 0)
+    {
+        fclose(f);
+        return NULL;
+    }
+    char *buf = malloc((size_t)sz + 1);
+    if(!buf)
+    {
+        fclose(f);
+        return NULL;
+    }
+    if((size_t)sz > 0 && fread(buf, 1, (size_t)sz, f) != (size_t)sz)
+    {
+        free(buf);
+        fclose(f);
+        return NULL;
+    }
+    buf[sz] = '\0';
+    fclose(f);
+    *out_len = (size_t)sz;
+    return buf;
+}
+
+static bool expand_file(const char *path,
+                        expand_entry_t **entries,
+                        size_t *cnt,
+                        size_t *cap,
+                        const char **inc_dirs,
+                        size_t inc_cnt,
+                        int depth)
+{
+    if(depth > 32)
+    {
+        diag_error(NULL, "include recurse limit exceeded near \"%s\"\n", path);
+        return false;
+    }
+
+    size_t len = 0;
+    char *code = slurp_file(path, &len);
+    if(!code)
+    {
+        diag_error(NULL, "failed to open header \"%s\"\n", path);
+        return false;
+    }
+
+    char dir_buf[PATH_MAX];
+    snprintf(dir_buf, sizeof(dir_buf), "%s", path);
+    char *slash = strrchr(dir_buf, '/');
+    const char *source_dir = slash ? (slash[0] = '\0', dir_buf) : ".";
+
+    size_t start = 0;
+    for(size_t i = 0; i <= len; i++)
+    {
+        if(code[i] != '\n' && i != len)
+        {
+            continue;
+        }
+
+        size_t line_len = i - start;
+        char *line = malloc(line_len + 1);
+        memcpy(line, code + start, line_len);
+        line[line_len] = '\0';
+        start = i + 1;
+
+        char *trimmed = line;
+        while(*trimmed == ' ' || *trimmed == '\t')
+        {
+            trimmed++;
+        }
+
+        if(strncmp(trimmed, "%include%", 9) == 0)
+        {
+            char *arg = trimmed + 9;
+            while(*arg == ' ' || *arg == '\t')
+            {
+                arg++;
+            }
+
+            char hdr_name[PATH_MAX] = {0};
+            bool is_system = false;
+            if(*arg == '<')
+            {
+                is_system = true;
+                char *end = strchr(arg + 1, '>');
+                if(!end)
+                {
+                    diag_error(NULL, "malformed %%include%% (missing '>') in \"%s\"\n", path);
+                    free(line);
+                    free(code);
+                    return false;
+                }
+                size_t nlen = (size_t)(end - arg - 1);
+                memcpy(hdr_name, arg + 1, nlen);
+                hdr_name[nlen] = '\0';
+            }
+            else if(*arg == '"')
+            {
+                char *end = strchr(arg + 1, '"');
+                if(!end)
+                {
+                    diag_error(NULL, "malformed %%include%% (missing '\"') in \"%s\"\n", path);
+                    free(line);
+                    free(code);
+                    return false;
+                }
+                size_t nlen = (size_t)(end - arg - 1);
+                memcpy(hdr_name, arg + 1, nlen);
+                hdr_name[nlen] = '\0';
+            }
+            else
+            {
+                diag_error(NULL, "malformed %%include%% directive in \"%s\"\n", path);
+                free(line);
+                free(code);
+                return false;
+            }
+
+            /* resolve path */
+            char *hdr_path = find_header(hdr_name, is_system ? NULL : source_dir, inc_dirs, inc_cnt);
+            if(!hdr_path)
+            {
+                diag_error(NULL, "header \"%s\" not found (included from \"%s\")\n", hdr_name, path);
+                free(line);
+                free(code);
+                return false;
+            }
+
+            free(line);
+
+            /* recurse */
+            bool ok = expand_file(hdr_path, entries, cnt, cap, inc_dirs, inc_cnt, depth + 1);
+            free(hdr_path);
+            if(!ok)
+            {
+                free(code);
+                return false;
+            }
+            continue;
+        }
+
+        if(*cnt >= *cap)
+        {
+            *cap = (*cap) ? (*cap) * 2 : 64;
+            *entries = realloc(*entries, (*cap) * sizeof(expand_entry_t));
+        }
+        (*entries)[*cnt].source_path = strdup(path);
+        (*entries)[*cnt].code = line;
+        (*entries)[*cnt].len = line_len;
+        (*cnt)++;
+    }
+
+    free(code);
+    return true;
+}
 
 bool assembler_code_preparse(assembler_invocation_t *inv,
                              const char **filev,
@@ -41,81 +241,68 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
      * preparing compiler invocation to
      * map and parse files.
      */
-    inv->file_cnt = filec;
-    inv->file = calloc(filec, sizeof(emex_file_t*));
+    expand_entry_t *entries = NULL;
+    size_t entry_cnt = 0, entry_cap = 0;
 
-    /* mapping files */
     for(int i = 0; i < filec; i++)
     {
-        /* initial open */
-        inv->file[i] = emex_file_alloc(filev[i]);
-        if(inv->file[i] == NULL)
+        if(!expand_file(filev[i], &entries, &entry_cnt, &entry_cap, (const char **)inv->include_dirs, inv->include_dir_cnt, 0))
         {
-            diag_error(NULL, "failed to find file at path \"%s\"\n", filev[i]);
-            return false;
-        }
-
-        if(!emex_file_open(inv->file[i]))
-        {
-            diag_error(NULL, "failed to open file at path \"%s\"\n", filev[i]);
+            free(entries);
             return false;
         }
     }
 
-    /*
-     * iterating through code and look for newline characters as
-     * indicator for a newline, all this to know how many lines
-     * exist here so we can allocate a list of lines.
-     * 
-     * note: we might switch to linked list later with those
-     *       things as it will be a lot faster than wasting
-     *       cpu cycles on dry passes.
-     */
-    size_t total_lines = 0;
-    for(size_t a = 0; a < inv->file_cnt; a++)
+    inv->file_cnt = 0;
+    inv->file = NULL;
+
+    for(size_t i = 0; i < entry_cnt; i++)
     {
-        for(size_t i = 0; i < inv->file[a]->len; i++)
+        const char *sp = entries[i].source_path;
+        bool found = false;
+        for(size_t j = 0; j < inv->file_cnt; j++)
         {
-            if(inv->file[a]->code[i] == '\n')
+            if(strcmp(inv->file[j]->path, sp) == 0)
             {
-                total_lines++;
+                found = true; break;
             }
         }
-        total_lines++;
+        if(!found)
+        {
+            inv->file = realloc(inv->file, (inv->file_cnt + 1) * sizeof(emex_file_t*));
+            emex_file_t *ef = calloc(1, sizeof(emex_file_t));
+            ef->path = strdup(sp);
+            inv->file[inv->file_cnt++] = ef;
+        }
     }
 
-    /* copy each line */
-    inv->line = calloc(total_lines, sizeof(assembler_line_t*));
+    inv->line = calloc(entry_cnt + 1, sizeof(assembler_line_t*));
     inv->line_cnt = 0;
-    for(size_t a = 0; a < inv->file_cnt; a++)
+
+    size_t file_line_counters[inv->file_cnt > 0 ? inv->file_cnt : 1];
+    memset(file_line_counters, 0, sizeof(size_t) * (inv->file_cnt > 0 ? inv->file_cnt : 1));
+
+    for(size_t i = 0; i < entry_cnt; i++)
     {
-        size_t file_line_cnt = 0;
-        size_t start_off = 0;   /* this offset is used to determine the lenght of each line */
-        for(size_t i = 0; i <= inv->file[a]->len; i++)
+        size_t file_idx = 0;
+        for(size_t j = 0; j < inv->file_cnt; j++)
         {
-            /* checking for new line character*/
-            if(inv->file[a]->code[i] == '\n' || i == inv->file[a]->len)
+            if(strcmp(inv->file[j]->path, entries[i].source_path) == 0)
             {
-                size_t end_off = i;
-
-                /* calculating the total lenght of the string */
-                size_t len = end_off - start_off;
-
-                /* allocate and copy line string */
-                assembler_line_t *al = calloc(1, sizeof(assembler_line_t));
-                al->str = malloc(len + 1);
-                memcpy(al->str, &(inv->file[a]->code[start_off]), len);
-                al->str[len] = '\0';
-
-                /* store diagnostic info */
-                al->line_num = ++file_line_cnt;
-                al->file_idx = a;
-                al->inv = inv;
-                inv->line[inv->line_cnt++] = al;
-                start_off = i + 1;
+                file_idx = j;
+                break;
             }
         }
+
+        assembler_line_t *al = calloc(1, sizeof(assembler_line_t));
+        al->str = entries[i].code;
+        al->line_num = ++file_line_counters[file_idx];
+        al->file_idx = file_idx;
+        al->inv = inv;
+        inv->line[inv->line_cnt++] = al;
+        free(entries[i].source_path);
     }
+    free(entries);
 
     /* getting subtokens of each token */
     for(unsigned long i = 0; i < inv->line_cnt; i++)
@@ -155,6 +342,8 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
     /* token pretype evaluation (for macros) */
     for(unsigned long i = 0; i < inv->line_cnt; i++)
     {
+        if(inv->line[i]->token_cnt == 0) continue;
+
         if(strcmp(inv->line[i]->token[0]->str, "%define%") == 0)
         {
             inv->line[i]->type = kAssemblerLineTypeMacroDefinition;
@@ -167,18 +356,6 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
         {
             inv->line[i]->type = kAssemblerLineTypeMacroCondition;
         }
-    }
-
-    /*
-     * unmapping each code file, but this
-     * shall not be the case bruh, we shall
-     * use linked lists so we dont have to
-     * store the code into the files
-     * anyways.
-     */
-    for(int i = 0; i < filec; i++)
-    {
-        emex_file_close(inv->file[i]);
     }
 
     return true;

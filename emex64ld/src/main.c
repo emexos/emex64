@@ -1,0 +1,860 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2026 emexlab
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <assert.h>
+#include <errno.h>
+
+#include <emex64lib/asm/elf.h>
+#include <emex64lib/vm/core.h>
+
+typedef Emex64_Ehdr Elf64_Ehdr;
+typedef Emex64_Shdr Elf64_Shdr;
+typedef Emex64_Sym Elf64_Sym;
+typedef Emex64_Rela Elf64_Rela;
+
+typedef struct {
+    uint8_t     *data;
+    size_t      size;
+
+    Elf64_Ehdr *ehdr;
+    Elf64_Shdr *shdrs;
+    char       *shstrtab;
+
+    int32_t    idx_text;
+    int32_t    idx_data;
+    int32_t    idx_bss;
+    int32_t    idx_rela_text;
+    int32_t    idx_rela_data;
+    int32_t    idx_symtab;
+    int32_t    idx_strtab;
+
+    uint64_t   base_text;
+    uint64_t   base_data;
+    uint64_t   base_bss;
+} Obj;
+
+#define SYMTAB_HASH 4096
+
+typedef struct GlobSym {
+    char        *name;
+    uint64_t    addr;
+    bool        defined;
+    struct GlobSym *next;
+} GlobSym;
+
+static GlobSym *sym_hash[SYMTAB_HASH];
+
+static uint32_t sym_hash_fn(const char *s)
+{
+    uint32_t h = 5381;
+    while(*s)
+    {
+        h = ((h << 5) + h) ^ (uint8_t)*s++;
+    }
+    return h % SYMTAB_HASH;
+}
+
+static GlobSym *sym_lookup(const char *name)
+{
+    GlobSym *g = sym_hash[sym_hash_fn(name)];
+    while(g)
+    {
+        if(strcmp(g->name, name) == 0)
+        {
+            return g;
+        }
+        g = g->next;
+    }
+    return NULL;
+}
+
+static GlobSym *sym_define(const char *name, uint64_t addr)
+{
+    GlobSym *g = sym_lookup(name);
+    if(!g)
+    {
+        g = calloc(1, sizeof(GlobSym));
+        g->name = strdup(name);
+        uint32_t h = sym_hash_fn(name);
+        g->next = sym_hash[h];
+        sym_hash[h] = g;
+    }
+    if(g->defined && g->addr != addr)
+    {
+        fprintf(stderr, "emex64ld: error: duplicate symbol '%s'\n", name);
+        return NULL;
+    }
+    g->addr = addr;
+    g->defined = true;
+    return g;
+}
+
+static uint8_t *read_file(const char *path, size_t *out_size)
+{
+    int fd = open(path, O_RDONLY);
+    if(fd < 0)
+    {
+        perror(path);
+        return NULL;
+    }
+
+    struct stat st;
+    if(fstat(fd, &st) != 0)
+    {
+        perror(path);
+        close(fd);
+        return NULL;
+    }
+
+    size_t sz = (size_t)st.st_size;
+    uint8_t *buf = malloc(sz);
+    if(!buf)
+    {
+        close(fd);
+        return NULL;
+    }
+
+    if(read(fd, buf, sz) != (ssize_t)sz)
+    {
+        fprintf(stderr, "emex64ld: read error: %s\n", path);
+        free(buf);
+        close(fd);
+        return NULL;
+    }
+    close(fd);
+    *out_size = sz;
+    return buf;
+}
+
+static bool obj_load(Obj *o, const char *path)
+{
+    memset(o, 0, sizeof(*o));
+    o->idx_text = o->idx_data = o->idx_bss =
+    o->idx_rela_text = o->idx_rela_data = o->idx_symtab = o->idx_strtab = -1;
+
+    o->data = read_file(path, &o->size);
+    if(!o->data)
+    {
+        return false;
+    }
+
+    if(o->size < sizeof(Elf64_Ehdr))
+    {
+        fprintf(stderr, "emex64ld: %s: too small to be ELF\n", path);
+        return false;
+    }
+
+    o->ehdr = (Elf64_Ehdr *)o->data;
+
+    if(o->ehdr->e_ident[0] != ELFMAG0 ||
+       o->ehdr->e_ident[1] != ELFMAG1 ||
+       o->ehdr->e_ident[2] != ELFMAG2 ||
+       o->ehdr->e_ident[3] != ELFMAG3)
+    {
+       fprintf(stderr, "emex64ld: %s: not an ELF file\n", path);
+       return false;
+    }
+
+    if(o->ehdr->e_machine != EM_EMEX64)
+    {
+        fprintf(stderr, "emex64ld: %s: not an emex64 object (e_machine=0x%x)\n", path, o->ehdr->e_machine);
+        return false;
+    }
+
+    if(o->ehdr->e_type != ET_REL)
+    {
+        fprintf(stderr, "emex64ld: %s: not a relocatable object\n", path);
+        return false;
+    }
+
+    o->shdrs = (Elf64_Shdr *)(o->data + o->ehdr->e_shoff);
+
+    if(o->ehdr->e_shstrndx != 0xFFFF &&
+       o->ehdr->e_shstrndx < o->ehdr->e_shnum)
+    {
+        Elf64_Shdr *ss = &o->shdrs[o->ehdr->e_shstrndx];
+        o->shstrtab = (char *)(o->data + ss->sh_offset);
+    }
+
+    /* find known sections */
+    for(uint16_t i = 0; i < o->ehdr->e_shnum; i++)
+    {
+        if(!o->shstrtab)
+        {
+            continue;
+        }
+        const char *name = o->shstrtab + o->shdrs[i].sh_name;
+
+        if(strcmp(name, ".text") == 0)
+        {
+            o->idx_text = i;
+        }
+        else if(strcmp(name, ".data") == 0)
+        {
+            o->idx_data = i;
+        }
+        else if(strcmp(name, ".bss") == 0)
+        {
+            o->idx_bss       = i;
+        }
+        else if(strcmp(name, ".rela.text") == 0)
+        {
+            o->idx_rela_text = i;
+        }
+        else if(strcmp(name, ".rela.data") == 0)
+        {
+            o->idx_rela_data = i;
+        }
+        else if(o->shdrs[i].sh_type == SHT_SYMTAB)
+        {
+            o->idx_symtab  = i;
+        }
+    }
+
+    if(o->idx_symtab >= 0)
+    {
+        o->idx_strtab = (int32_t)o->shdrs[o->idx_symtab].sh_link;
+    }
+
+    return true;
+}
+
+static inline uint64_t obj_text_size(const Obj *o)
+{
+    return o->idx_text >= 0 ? o->shdrs[o->idx_text].sh_size : 0;
+}
+
+static inline uint64_t obj_data_size(const Obj *o)
+{
+    return o->idx_data >= 0 ? o->shdrs[o->idx_data].sh_size : 0;
+}
+
+static inline uint64_t obj_bss_size(const Obj *o)
+{
+    return o->idx_bss >= 0 ? o->shdrs[o->idx_bss].sh_size : 0;
+}
+
+static bool obj_register_symbols(Obj *o)
+{
+    if (o->idx_symtab < 0) return true;
+
+    Elf64_Shdr *symsh = &o->shdrs[o->idx_symtab];
+    Elf64_Sym  *syms = (Elf64_Sym *)(o->data + symsh->sh_offset);
+    size_t nsyms  = symsh->sh_size / sizeof(Elf64_Sym);
+    const char *strtab = (o->idx_strtab >= 0) ? (char *)(o->data + o->shdrs[o->idx_strtab].sh_offset) : NULL;
+
+    for(size_t i = 0; i < nsyms; i++)
+    {
+        Elf64_Sym *sym = &syms[i];
+        uint8_t bind = sym->st_info >> 4;
+
+        if(bind != STB_GLOBAL)
+        {
+            continue;
+        }
+        if(sym->st_shndx == SHN_UNDEF)
+        {
+            continue;
+        }
+        if(!strtab)
+        {
+            continue;
+        }
+
+        const char *name = strtab + sym->st_name;
+        if(!name || !*name)
+        {
+            continue;
+        }
+
+        uint64_t addr = 0;
+
+        if(sym->st_shndx == SHN_ABS)
+        {
+            addr = sym->st_value;
+        }
+        else if((int32_t)sym->st_shndx == o->idx_text)
+        {
+            addr = o->base_text + sym->st_value;
+        }
+        else if((int32_t)sym->st_shndx == o->idx_data)
+        {
+            addr = o->base_data + sym->st_value;
+        }
+        else if((int32_t)sym->st_shndx == o->idx_bss)
+        {
+            addr = o->base_bss  + sym->st_value;
+        }
+        else
+        {
+            addr = sym->st_value;
+        }
+
+        if (!sym_define(name, addr)) return false;
+    }
+    return true;
+}
+
+static uint64_t sym_resolve(const Obj *o, uint32_t sym_idx)
+{
+    if(o->idx_symtab < 0)
+    {
+        return 0;
+    }
+
+    Elf64_Shdr *symsh = &o->shdrs[o->idx_symtab];
+    Elf64_Sym *syms = (Elf64_Sym *)(o->data + symsh->sh_offset);
+    size_t nsyms = symsh->sh_size / sizeof(Elf64_Sym);
+    const char *strtab = (o->idx_strtab >= 0) ? (char *)(o->data + o->shdrs[o->idx_strtab].sh_offset) : NULL;
+
+    if(sym_idx >= nsyms)
+    {
+        return 0;
+    }
+
+    Elf64_Sym *sym = &syms[sym_idx];
+    (void)(sym->st_info >> 4);
+
+    if((sym->st_info & 0xf) == STT_SECTION)
+    {
+        if((int32_t)sym->st_shndx == o->idx_text)
+        {
+            return o->base_text;
+        }
+        if((int32_t)sym->st_shndx == o->idx_data)
+        {
+            return o->base_data;
+        }
+        if((int32_t)sym->st_shndx == o->idx_bss)
+        {
+            return o->base_bss;
+        }
+        return 0;
+    }
+
+    if(strtab)
+    {
+        const char *name = strtab + sym->st_name;
+        GlobSym *g = sym_lookup(name);
+        if(g && g->defined)
+        {
+            return g->addr;
+        }
+
+        if(sym->st_shndx != SHN_UNDEF)
+        {
+            if((int32_t)sym->st_shndx == o->idx_text)
+            {
+                return o->base_text + sym->st_value;
+            }
+            if((int32_t)sym->st_shndx == o->idx_data)
+            {
+                return o->base_data + sym->st_value;
+            }
+            if((int32_t)sym->st_shndx == o->idx_bss)
+            {
+                return o->base_bss  + sym->st_value;
+            }
+        }
+
+        fprintf(stderr, "emex64ld: undefined symbol '%s'\n", name);
+    }
+    return 0;
+}
+
+static bool obj_apply_relocs(const Obj *o, uint8_t *out_text, uint8_t *out_data)
+{
+    if(o->idx_rela_text >= 0)
+    {
+        Elf64_Shdr *rs = &o->shdrs[o->idx_rela_text];
+        Elf64_Rela *rela = (Elf64_Rela *)(o->data + rs->sh_offset);
+        size_t cnt = rs->sh_size / sizeof(Elf64_Rela);
+
+        for(size_t i = 0; i < cnt; i++)
+        {
+            uint32_t type = (uint32_t)EMEX64_ELF32_R_TYPE(rela[i].r_info);
+            uint32_t sym_idx = (uint32_t)EMEX64_ELF32_R_SYM(rela[i].r_info);
+            uint64_t offset = rela[i].r_offset;
+            int64_t  addend = rela[i].r_addend;
+
+            if(type != R_EMEX64_ABS64)
+            {
+                fprintf(stderr, "emex64ld: unsupported relocation type %u in .rela.text\n", type);
+                return false;
+            }
+
+            uint64_t sym_addr = sym_resolve(o, sym_idx);
+            uint64_t value = sym_addr + (uint64_t)addend;
+
+            uint8_t *patch = out_text + offset;
+            memcpy(patch, &value, 8);
+        }
+    }
+
+    if(o->idx_rela_data >= 0)
+    {
+        Elf64_Shdr *rs = &o->shdrs[o->idx_rela_data];
+        Elf64_Rela *rela = (Elf64_Rela *)(o->data + rs->sh_offset);
+        size_t cnt = rs->sh_size / sizeof(Elf64_Rela);
+
+        for(size_t i = 0; i < cnt; i++)
+        {
+            uint32_t type = (uint32_t)EMEX64_ELF32_R_TYPE(rela[i].r_info);
+            uint32_t sym_idx = (uint32_t)EMEX64_ELF32_R_SYM(rela[i].r_info);
+            uint64_t offset = rela[i].r_offset;
+            int64_t addend = rela[i].r_addend;
+
+            if(type != R_EMEX64_ABS64)
+            {
+                fprintf(stderr, "emex64ld: unsupported relocation type %u in .rela.data\n", type);
+                return false;
+            }
+
+            uint64_t sym_addr = sym_resolve(o, sym_idx);
+            uint64_t value = sym_addr + (uint64_t)addend;
+
+            uint8_t *patch = out_data + offset;
+            memcpy(patch, &value, 8);
+        }
+    }
+
+    return true;
+}
+
+typedef struct {
+    char *name;
+    char *expr;
+} script_sym_t;
+
+static script_sym_t *script_syms = NULL;
+static size_t script_sym_cnt = 0;
+
+static bool parse_linker_script(const char *path)
+{
+    FILE *f = fopen(path, "r");
+    if(!f)
+    {
+        fprintf(stderr, "emex64ld: cannot open linker script '%s': %s\n", path, strerror(errno));
+        return false;
+    }
+
+    char line[1024];
+    int lineno = 0;
+    while(fgets(line, sizeof(line), f))
+    {
+        lineno++;
+        char *comment = strchr(line, '#');
+        if(comment)
+        {
+            *comment = '\0';
+        }
+        char *end = line + strlen(line);
+        while(end > line && (end[-1] == '\n' || end[-1] == '\r' || end[-1] == ' '  || end[-1] == '\t'))
+        {
+            *--end = '\0';
+        }
+
+        char *p = line;
+        while(*p == ' ' || *p == '\t')
+        {
+            p++;
+        }
+        if(!*p)
+        {
+            continue;
+        }
+
+        if(strncmp(p, "PROVIDE", 7) == 0 && (p[7] == ' ' || p[7] == '\t'))
+        {
+            p += 7;
+            while(*p == ' ' || *p == '\t')
+            {
+                p++;
+            }
+
+            /* symbol name */
+            char *name_start = p;
+            while(*p && *p != '=' && *p != ' ' && *p != '\t')
+            {
+                p++;
+            }
+            size_t name_len = (size_t)(p - name_start);
+            if(name_len == 0)
+            {
+                fprintf(stderr, "emex64ld: %s:%d: expected symbol name after PROVIDE\n", path, lineno);
+                fclose(f);
+                return false;
+            }
+            char *sym_name = malloc(name_len + 1);
+            memcpy(sym_name, name_start, name_len);
+            sym_name[name_len] = '\0';
+
+            while(*p == ' ' || *p == '\t')
+            {
+                p++;
+            }
+            if(*p != '=')
+            {
+                fprintf(stderr, "emex64ld: %s:%d: expected '=' after symbol name\n", path, lineno);
+                free(sym_name); fclose(f); return false;
+            }
+            p++;
+            while(*p == ' ' || *p == '\t')
+            {
+                p++;
+            }
+
+            char *expr_start = p;
+            char *semi = strchr(p, ';');
+            if(semi)
+            {
+                *semi = '\0';
+            }
+            end = p + strlen(p);
+            while(end > p && (end[-1] == ' ' || end[-1] == '\t'))
+            {
+                *--end = '\0';
+            }
+
+            if(!*expr_start)
+            {
+                fprintf(stderr, "emex64ld: %s:%d: empty expression\n", path, lineno);
+                free(sym_name);
+                fclose(f);
+                return false;
+            }
+
+            script_syms = realloc(script_syms, (script_sym_cnt + 1) * sizeof(script_sym_t));
+            script_syms[script_sym_cnt].name = sym_name;
+            script_syms[script_sym_cnt].expr = strdup(expr_start);
+            script_sym_cnt++;
+            continue;
+        }
+
+        fprintf(stderr, "emex64ld: %s:%d: unrecognised linker script directive: '%s'\n", path, lineno, p);
+        fclose(f);
+        return false;
+    }
+
+    fclose(f);
+    return true;
+}
+
+static bool apply_script_symbols(uint64_t image_end,
+                                 uint64_t text_start,
+                                 uint64_t data_start,
+                                 uint64_t bss_start)
+{
+    for(size_t i = 0; i < script_sym_cnt; i++)
+    {
+        const char *expr = script_syms[i].expr;
+        uint64_t value = 0;
+
+        if(strcmp(expr, "IMAGE_END") == 0)
+        {
+            value = image_end;
+        }
+        else if(strcmp(expr, "IMAGE_START") == 0)
+        {
+            value = 0;
+        }
+        else if(strcmp(expr, "TEXT_START") == 0)
+        {
+            value = text_start;
+        }
+        else if(strcmp(expr, "DATA_START") == 0)
+        {
+            value = data_start;
+        }
+        else if(strcmp(expr, "BSS_START") == 0)
+        {
+            value = bss_start;
+        }
+        else
+        {
+            /* parse hex / decimal number */
+            char *endptr = NULL;
+            value = (uint64_t)strtoull(expr, &endptr, 0);
+            if(!endptr || *endptr != '\0')
+            {
+                fprintf(stderr, "emex64ld: unknown expression '%s' in linker script\n", expr);
+                return false;
+            }
+        }
+
+        if(!sym_define(script_syms[i].name, value))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+static void write_le_u64(uint8_t *buf, uint64_t v)
+{
+    for(int i = 0; i < 8; i++)
+    {
+        buf[i] = v & 0xff;
+        v >>= 8;
+    }
+}
+
+static void emit_boot_header(uint8_t hdr[10], uint64_t entry)
+{
+    memset(hdr, 0, 10);
+
+    /* b <start sym> */
+    hdr[0] = kEmex64OpcodeB;
+    uint8_t coding = (uint8_t)(kEmex64ParameterCodingImm64 & 0x7); /* 0b110 = 6 */
+    uint64_t payload_lo = (uint64_t)coding | (entry << 3);
+    uint64_t payload_hi = entry >> 61;
+    write_le_u64(hdr + 1, payload_lo);
+    hdr[9] = (uint8_t)(payload_hi & 0x7);
+}
+
+static void usage(const char *prog)
+{
+    fprintf(stderr, "Usage: %s [-o output] [-e entry] [-T script.e64ld] file1.e64o [...]\n", prog);
+    fprintf(stderr, "  -o output        Output file (default: a.out)\n");
+    fprintf(stderr, "  -e entry         Entry symbol (default: _start)\n");
+    fprintf(stderr, "  -T script.e64ld  Linker script (or pass .e64ld files directly)\n");
+    fprintf(stderr, "  .e64ld files are auto-detected by extension\n");
+}
+
+int main(int argc, char *argv[])
+{
+    const char *output_path = "a.out";
+    const char *entry_name = "_start";
+    int file_count   = 0;
+    const char **input_files = calloc((size_t)argc, sizeof(char *));
+
+    for(int i = 1; i < argc; i++)
+    {
+        if(strcmp(argv[i], "-o") == 0 && i + 1 < argc)
+        {
+            output_path = argv[++i];
+        }
+        else if (strcmp(argv[i], "-e") == 0 && i + 1 < argc)
+        {
+            entry_name = argv[++i];
+        }
+        else if((strcmp(argv[i], "-T") == 0 || strcmp(argv[i], "--script") == 0) && i + 1 < argc)
+        {
+            if(!parse_linker_script(argv[++i]))
+            {
+                return 1;
+            }
+        }
+        else if (strncmp(argv[i], "-T", 2) == 0 && argv[i][2])
+        {
+            if(!parse_linker_script(argv[i] + 2))
+            {
+                return 1;
+            }
+        }
+        else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+        {
+            usage(argv[0]);
+            return 0;
+        }
+        else if (argv[i][0] != '-')
+        {
+            size_t n = strlen(argv[i]);
+            if(n > 5 && strcmp(argv[i] + n - 5, ".e64ld") == 0)
+            {
+                if(!parse_linker_script(argv[i]))
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                input_files[file_count++] = argv[i];
+            }
+        }
+        else
+        {
+            fprintf(stderr, "emex64ld: unknown option '%s'\n", argv[i]);
+            usage(argv[0]);
+            return 1;
+        }
+    }
+
+    if(file_count == 0)
+    {
+        fprintf(stderr, "emex64ld: no input files\n");
+        usage(argv[0]);
+        return 1;
+    }
+
+    Obj *objs = calloc((size_t)file_count, sizeof(Obj));
+    if(!objs)
+    {
+        perror("malloc");
+        return 1;
+    }
+
+    const uint64_t BOOT_HEADER_SIZE = 10;
+    uint64_t cur_text = BOOT_HEADER_SIZE;
+    uint64_t cur_data = 0;
+    uint64_t cur_bss  = 0;
+
+    for(int i = 0; i < file_count; i++)
+    {
+        if(!obj_load(&objs[i], input_files[i]))
+        {
+            return 1;
+        }
+        objs[i].base_text = cur_text;
+        cur_text += obj_text_size(&objs[i]);
+    }
+
+    cur_data = cur_text;
+    for(int i = 0; i < file_count; i++)
+    {
+        objs[i].base_data = cur_data;
+        cur_data += obj_data_size(&objs[i]);
+    }
+
+    cur_bss = cur_data;
+    for(int i = 0; i < file_count; i++)
+    {
+        objs[i].base_bss = cur_bss;
+        cur_bss += obj_bss_size(&objs[i]);
+    }
+
+    uint64_t total_text = cur_text - BOOT_HEADER_SIZE;
+    uint64_t total_data = cur_data - cur_text;
+    uint64_t image_size = BOOT_HEADER_SIZE + total_text + total_data;
+
+    if(!apply_script_symbols(cur_bss, BOOT_HEADER_SIZE, cur_text, cur_bss > cur_data ? cur_data : cur_bss))
+    {
+        return 1;
+    }
+
+    for(int i = 0; i < file_count; i++)
+    {
+        if(!obj_register_symbols(&objs[i]))
+        {
+            return 1;
+        }
+    }
+
+    uint8_t *image = calloc(image_size, 1);
+    if(!image)
+    {
+        perror("malloc");
+        return 1;
+    }
+
+    /* copy .text sections */
+    for(int i = 0; i < file_count; i++)
+    {
+        if(objs[i].idx_text < 0)
+        {
+            continue;
+        }
+        Elf64_Shdr *sh = &objs[i].shdrs[objs[i].idx_text];
+        uint64_t dst_off = objs[i].base_text;
+        memcpy(image + dst_off, objs[i].data + sh->sh_offset, sh->sh_size);
+    }
+
+    /* copy .data sections */
+    for(int i = 0; i < file_count; i++)
+    {
+        if(objs[i].idx_data < 0)
+        {
+            continue;
+        }
+        Elf64_Shdr *sh = &objs[i].shdrs[objs[i].idx_data];
+        uint64_t dst_off = objs[i].base_data;
+        memcpy(image + dst_off, objs[i].data + sh->sh_offset, sh->sh_size);
+    }
+
+    /* .bss: already zeroed by calloc */
+    for(int i = 0; i < file_count; i++)
+    {
+        uint8_t *obj_text_ptr = image + objs[i].base_text;
+        uint8_t *obj_data_ptr = image + objs[i].base_data;
+        if(!obj_apply_relocs(&objs[i], obj_text_ptr, obj_data_ptr))
+        {
+            return 1;
+        }
+    }
+
+    GlobSym *entry_sym = sym_lookup(entry_name);
+    if(!entry_sym || !entry_sym->defined)
+    {
+        fprintf(stderr, "emex64ld: entry symbol '%s' not found\n", entry_name);
+        return 1;
+    }
+
+    uint64_t entry_addr = entry_sym->addr;
+    uint8_t boot_hdr[10];
+    emit_boot_header(boot_hdr, entry_addr);
+    memcpy(image, boot_hdr, 10);
+
+    int fd = open(output_path, O_WRONLY | O_CREAT | O_TRUNC, 0755);
+    if(fd < 0)
+    {
+        perror(output_path);
+        return 1;
+    }
+
+    ssize_t written = write(fd, image, image_size);
+    if(written != (ssize_t)image_size)
+    {
+        fprintf(stderr, "emex64ld: write error: %s\n", output_path);
+        close(fd);
+        return 1;
+    }
+
+    fsync(fd);
+    close(fd);
+
+    fprintf(stderr,
+            "emex64ld: linked %d object(s) → %s\n"
+            "  .text  %8lu bytes @ 0x%08lx\n"
+            "  .data  %8lu bytes @ 0x%08lx\n"
+            "  .bss   %8lu bytes @ 0x%08lx (virtual)\n"
+            "  entry  %s @ 0x%08lx\n",
+            file_count, output_path,
+            (unsigned long)total_text, (unsigned long)BOOT_HEADER_SIZE,
+            (unsigned long)total_data, (unsigned long)cur_text,
+            (unsigned long)(cur_bss - cur_data), (unsigned long)cur_data,
+            entry_name, (unsigned long)entry_addr);
+
+    free(image);
+    free(objs);
+    free(input_files);
+    return 0;
+}

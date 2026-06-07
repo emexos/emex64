@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@
 
 bool assembler_label_prealloc(assembler_invocation_t *inv);
 bool assembler_label_append(assembler_token_t *at);
-bool assembler_label_insert_start_entry(assembler_invocation_t *inv);
 
 assembler_label_t *assembler_label_lookup(assembler_invocation_t *inv, const char *name);
 

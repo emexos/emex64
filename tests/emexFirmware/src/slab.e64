@@ -22,7 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define% PAGE_MASK              0xFFFFFFFFFFFFE000
+%include% <emex64.e64h>
 %define% SLAB_META_SIZE         64                              ; size of slab metadata
 
 %define% SLAB_OFF_BASE          0x00

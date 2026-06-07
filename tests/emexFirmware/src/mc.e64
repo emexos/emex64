@@ -22,7 +22,7 @@
 ; SOFTWARE.
 ;
 
-%define%    MCSIZE  0x1FE00400
+%include% <emex64.e64h>
 
 _mc_get_mem_size:
     ldq rr, MCSIZE                  ; loading memory size

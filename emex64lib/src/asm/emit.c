@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -273,21 +273,14 @@ bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
                 }
             }
 
-            if(al->inv->options.absolute_addr_align)
-            {
-                fdwalker_write(al->inv->fdwalker, kEmex64ParameterCodingAddr64, 3);
-                fdwalker_align_byte(al->inv->fdwalker);
-            }
-            else
-            {
-                fdwalker_write(al->inv->fdwalker, kEmex64ParameterCodingImm64, 3);
-            }
+            fdwalker_write(al->inv->fdwalker, kEmex64ParameterCodingAddr64, 3);
+            fdwalker_align_byte(al->inv->fdwalker);
 
             /*
              * append label callsite to relocation
              * table.
              */
-            reloc_table_entry_t *rtbe = malloc(sizeof(reloc_table_entry_t));
+            reloc_table_entry_t *rtbe = calloc(1, sizeof(reloc_table_entry_t));
             if(al->inv->rtbe != NULL)
             {
                 rtbe->next = al->inv->rtbe;
@@ -406,21 +399,16 @@ bool assembler_emit(assembler_invocation_t *inv)
     inv->label[inv->label_cnt].addr = st.st_size;
     inv->label[inv->label_cnt++].name = strdup("__emex64_exec_img_end");
 
-    /*
-     * the main code emitter appended labels the code
-     * requires to the relocation table, so we have to
-     * look each request up in the label lookup table
-     * and insert each label at the place where a label
-     * shall be.
-     */
+    /* relocate if possible */
     reloc_table_entry_t *rtbe = inv->rtbe;
     while(rtbe != NULL)
     {
         assembler_label_t *label = assembler_label_lookup(inv, rtbe->name);
         if(label == NULL)
         {
-            diag_error(rtbe->at_link, "label \"%s\" not found\n", rtbe->name);
-            return false;
+            /* object emitter will create RELA entries */
+            rtbe = rtbe->next;
+            continue;
         }
 
         fdwalker_seek(inv->fdwalker, rtbe->byte_pos, rtbe->bit_idx);

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,16 @@ typedef struct assembler_invocation {
 
     uint64_t definition_cnt;
     assembler_macro_definition_t *definition;   /* array of definitions*/
+
+    /* include search paths (-I flags) */
+    char **include_dirs;
+    size_t include_dir_cnt;
+
+    /* section boundaries */
+    uint64_t data_section_start;
+    uint64_t data_section_end;
+    uint64_t bss_section_start;
+    uint64_t bss_section_size;
 } assembler_invocation_t;
 
 assembler_invocation_t *assembler_invocation_alloc(const char *output_path);

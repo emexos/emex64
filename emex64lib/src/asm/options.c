@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 emexlab
+ * Copyright (c) 2026 emexlab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +28,7 @@ assembler_options_t assembler_options_default(void)
 {
     return (assembler_options_t){
         .page_align = true,
-        .absolute_addr_align = true,
         .offset_branch = true,
-        .start_entry_name = "_start",
         .warning_error = false,
         .warning_deprecated = true
     };
