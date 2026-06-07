@@ -42,6 +42,8 @@
 #define TIMER_CTRL_PERIODIC (1 << 2)
 #define TIMER_STATUS_IRQ    (1 << 0)
 
+#define TIMER_VIRTUAL_FREQ  1000000ULL
+
 typedef struct emex64_machine emex64_machine_t;
 
 typedef struct emex64_timer {

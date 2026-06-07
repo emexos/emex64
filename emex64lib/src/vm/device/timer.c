@@ -129,7 +129,7 @@ void emex64_timer_dealloc(emex64_timer_t *timer)
 }
 
 void emex64_timer_tick(emex64_timer_t *timer,
-                     uint64_t host_cycles)
+                       uint64_t host_cycles)
 {
     /* checking if timer is not enabled */
     if(!(timer->ctrl & TIMER_CTRL_ENABLE))
@@ -142,16 +142,13 @@ void emex64_timer_tick(emex64_timer_t *timer,
     /* calculate elappsed cycles */
     uint64_t elapsed_host = host_cycles - timer->last_host_cycles;
     timer->last_host_cycles = host_cycles;
-
-    if (elapsed_host == 0)
+    if(elapsed_host == 0)
     {
         return;
     }
 
     /*  calculating using virtual frequency the actual timer count */
-    uint64_t virtual_ticks = elapsed_host;
-    
-    /* null check */
+    uint64_t virtual_ticks = ((__uint128_t)elapsed_host * TIMER_VIRTUAL_FREQ) / timer->host_freq;
     if(virtual_ticks == 0)
     {
         return;
@@ -202,7 +199,7 @@ uint64_t emex64_timer_read(emex64_core_t *core,
         case TIMER_REG_STATUS:
             return timer->status;
         case TIMER_REG_FREQ:
-            return timer->host_freq;
+            return TIMER_VIRTUAL_FREQ;
         default:
             return 0;
     }
