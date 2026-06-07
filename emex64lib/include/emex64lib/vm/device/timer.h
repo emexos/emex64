@@ -56,6 +56,7 @@ typedef struct emex64_timer {
     uint64_t last_host_cycles;
     
     emex64_machine_t *machine;
+    uint64_t tick_remainder;
 } emex64_timer_t;
 
 emex64_timer_t *emex64_timer_alloc(emex64_machine_t *core);

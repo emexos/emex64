@@ -148,7 +148,9 @@ void emex64_timer_tick(emex64_timer_t *timer,
     }
 
     /*  calculating using virtual frequency the actual timer count */
-    uint64_t virtual_ticks = ((__uint128_t)elapsed_host * TIMER_VIRTUAL_FREQ) / timer->host_freq;
+    __uint128_t numerator = (__uint128_t)elapsed_host * TIMER_VIRTUAL_FREQ + timer->tick_remainder;
+    uint64_t virtual_ticks = (uint64_t)(numerator / timer->host_freq);
+    timer->tick_remainder  = (uint64_t)(numerator % timer->host_freq);
     if(virtual_ticks == 0)
     {
         return;
