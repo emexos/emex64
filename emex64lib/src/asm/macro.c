@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -34,10 +35,8 @@
 
 typedef struct {
     const char *match;
-    const char *replacement;
-    /* TODO: do token replacement */
-    //assembler_token_t *token;
-    //uint64_t token_cnt;
+    char **inject_token;
+    uint64_t inject_token_cnt;
 } assembler_macro_t;
 
 bool assembler_macro_expand(assembler_invocation_t *inv)
@@ -67,34 +66,57 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
         if(inv->line[i]->type == kAssemblerLineTypeMacroDefinition)
         {
             am[c].match = inv->line[i]->token[1]->str;
-            am[c].replacement = inv->line[i]->token[2]->str;
+            am[c].inject_token_cnt = inv->line[i]->token_cnt - 2;
+            am[c].inject_token = calloc(am[c].inject_token_cnt, sizeof(char*));
+            for(uint64_t a = 0; a < am[c].inject_token_cnt; a++)
+            {
+                am[c].inject_token[a] = inv->line[i]->token[a + 2]->str;
+            }
             c++;
         }
     }
 
     /* now replacing */
-    for(uint64_t i = 0; i < inv->line_cnt; i++)
+    for(uint64_t li = 0; li < inv->line_cnt; li++)
     {
-        if(inv->line[i]->type != kAssemblerLineTypeMacroDefinition)
+        if(inv->line[li]->type != kAssemblerLineTypeMacroDefinition)
         {
-            for(uint64_t a = 0; a < inv->line[i]->token_cnt; a++)
+            for(uint64_t ti = 0; ti < inv->line[li]->token_cnt; ti++)
             {
-                for(uint64_t b = 0; b < c; b++)
+                for(uint64_t ami = 0; ami < c; ami++)
                 {
-                    if(strcmp(inv->line[i]->token[a]->str, am[b].match) == 0)
+                    /* matching macro */
+                    if(strcmp(inv->line[li]->token[ti]->str, am[ami].match) == 0)
                     {
-                        /* check */
+                        uint64_t old_token_cnt = inv->line[li]->token_cnt;
+                        uint64_t new_tokens = (am[ami].inject_token_cnt);
+                        uint64_t extra = new_tokens - 1;
+                        uint64_t column_number = inv->line[li]->token[ti]->column_num;
 
-                        char *copy_replacement = strdup(am[b].replacement);
-                        if(copy_replacement == NULL)
+                        if(extra > 0)
                         {
-                            diag_error(NULL, "something terrible has happened\n");
-                            free(am);
-                            return false;
+
+                            /* reallocating space to insert the macro */
+                            inv->line[li]->token_cnt += extra;
+                            inv->line[li]->token = realloc(inv->line[li]->token, inv->line[li]->token_cnt * sizeof(assembler_token_t*));
+
+                            /* destroying affected token */
+                            free(inv->line[li]->token[ti]->str);
+                            free(inv->line[li]->token[ti]);
+
+                            /* making space for macro to be inserted */
+                            memmove(&inv->line[li]->token[ti + new_tokens], &inv->line[li]->token[ti + 1], (old_token_cnt - ti - 1) * sizeof(assembler_token_t));
                         }
 
-                        free(inv->line[i]->token[a]->str);
-                        inv->line[i]->token[a]->str = copy_replacement;
+                        for(uint64_t k = 0; k < new_tokens; k++)
+                        {
+                            assembler_token_t *at = calloc(1, sizeof(assembler_token_t));
+                            at->al = inv->line[li];
+                            at->str = strdup(am[ami].inject_token[k]);
+                            at->column_num = column_number;
+                            inv->line[li]->token[ti + k] = at;
+                        }
+
                         break;
                     }
                 }
