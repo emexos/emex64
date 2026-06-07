@@ -235,9 +235,9 @@ bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
             }
 
             if(al->inv->options.offset_branch &&
-               (((opce->opcode == kEmex64OpcodeBLW  || opce->opcode == kEmex64OpcodeB   || opce->opcode == kEmex64OpcodeBE ||
-                opce->opcode == kEmex64OpcodeBNE   || opce->opcode == kEmex64OpcodeBLE || opce->opcode == kEmex64OpcodeBGE ||
-                opce->opcode == kEmex64OpcodeBLT   || opce->opcode == kEmex64OpcodeBGT) && i == 1) ||
+               (((opce->opcode == kEmex64OpcodeBLW || opce->opcode == kEmex64OpcodeB   || opce->opcode == kEmex64OpcodeBE ||
+                  opce->opcode == kEmex64OpcodeBNE || opce->opcode == kEmex64OpcodeBLE || opce->opcode == kEmex64OpcodeBGE ||
+                  opce->opcode == kEmex64OpcodeBLT || opce->opcode == kEmex64OpcodeBGT || opce->opcode == kEmex64OpcodeBL) && i == 1) ||
                ((opce->opcode == kEmex64OpcodeBZ   || opce->opcode == kEmex64OpcodeBNZ) && i == 2)))
             {
                 assembler_label_t *found = assembler_label_lookup(al->inv, label);

@@ -115,7 +115,7 @@ _start:
     blw _pmm_init                                    ; initilizing page allocator
     blw _slab_init                                   ; initilizing slab allocator
     blw _interrupt_init                              ; initilizing interrupt controller
-    blw _fw_start                                    ; branching to main symbol
+    bl _fw_start                                     ; branching to main symbol
 .poweroff:
     stb PLATFORM_PWR, 0                             ; telling platform device to turn off
     
