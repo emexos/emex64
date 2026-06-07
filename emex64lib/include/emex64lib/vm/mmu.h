@@ -36,6 +36,7 @@
 #define EMEX64_MMU_PT_READ            0b00001000  /* marks a PTE as readable */
 #define EMEX64_MMU_PT_WRITE           0b00010000  /* marks a PTE as writable (most MMU's don't have that, but this one does) */
 #define EMEX64_MMU_PT_EXEC            0b00100000  /* marks a PTE as executable (means the CPU core can fetch instructions from it and execute them) */
+#define EMEX64_MMU_PT_ACCESSED        0b01000000  /* marks a PTE as accessed (MMU sets this bit when this has been accessed) */
 
 /* page table enry masks */
 #define EMEX64_MMU_MASK_FLAGS         0b0000000000000000000000000000000000000000000000000000000011111111
