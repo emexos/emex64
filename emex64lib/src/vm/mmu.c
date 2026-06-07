@@ -161,8 +161,13 @@ bool emex64_mmu_access(emex64_core_t *core,
     uint16_t pte_index = (vaddr >> 13) & 0x3FF;
     uint16_t offset = vaddr & 0x1FFF;               /* 13bit offset (addressing within a page) */
 
-    /* now we calculate the address where the physical frame is */
+    /*
+     * getting page global directory from physical frame number
+     * stored in the 5th level (yk the control register x3).
+     */
     uint64_t pgd_addr = cr_pfn << 13;
+
+    /* still unknown page directory addresses */
     uint64_t pud_addr, pmd_addr, pte_addr, physaddr;
 
     /* now access each table */
