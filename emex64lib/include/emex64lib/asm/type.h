@@ -33,6 +33,7 @@
 
 enum kAssemblerLineType: uint8_t {
     kAssemblerLineTypeNone,
+    kAssemblerLineTypeIgnore,
     kAssemblerLineTypeAssembly,
     kAssemblerLineTypeGlobalLabel,
     kAssemblerLineTypeLocalLabel,

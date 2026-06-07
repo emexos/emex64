@@ -152,14 +152,12 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
         }
     }
 
-    /* token pretype evaluation */
-    bool section_mode = false;
+    /* token pretype evaluation (for macros) */
     for(unsigned long i = 0; i < inv->line_cnt; i++)
     {
         if(strcmp(inv->line[i]->token[0]->str, "%define%") == 0)
         {
             inv->line[i]->type = kAssemblerLineTypeMacroDefinition;
-            continue;
         }
     }
 
@@ -184,9 +182,10 @@ bool assembler_code_parse(assembler_invocation_t *inv)
     bool section_mode = false;
     for(unsigned long i = 0; i < inv->line_cnt; i++)
     {
-        if(inv->line[i]->token_cnt == 0)
+        if(inv->line[i]->token_cnt == 0 ||
+           inv->line[i]->type == kAssemblerLineTypeIgnore)
         {
-            /* probably a whitespace */
+            /* probably a whitespace or excluded by a macro */
             continue;
         }
         else if(inv->line[i]->token_cnt < 2)
@@ -232,17 +231,10 @@ bool assembler_code_parse(assembler_invocation_t *inv)
                 continue;
             }
         }
-        
-        if(inv->line[i]->token_cnt < 3 && strcmp(inv->line[i]->token[0]->str, "section") == 0)
+        else if(inv->line[i]->token_cnt < 3 && strcmp(inv->line[i]->token[0]->str, "section") == 0)
         {
             section_mode = true;
             inv->line[i]->type = kAssemblerLineTypeSection;
-            continue;
-        }
-        else if(strcmp(inv->line[i]->token[0]->str, "%define%") == 0)
-        {
-            section_mode = false;
-            inv->line[i]->type = kAssemblerLineTypeMacroDefinition;
             continue;
         }
 

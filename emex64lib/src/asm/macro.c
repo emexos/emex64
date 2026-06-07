@@ -72,6 +72,7 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
             {
                 am[c].inject_token[a] = inv->line[i]->token[a + 2]->str;
             }
+            inv->line[i]->type = kAssemblerLineTypeIgnore;
             c++;
         }
     }
@@ -95,7 +96,6 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
 
                         if(extra > 0)
                         {
-
                             /* reallocating space to insert the macro */
                             inv->line[li]->token_cnt += extra;
                             inv->line[li]->token = realloc(inv->line[li]->token, inv->line[li]->token_cnt * sizeof(assembler_token_t*));
