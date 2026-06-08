@@ -209,15 +209,6 @@ _exception_handler:
     ; the hard part is getting the old values
     ; from the stack frame IC created
     blw _puts, exception_reg_msg
-    and r0, cr4, CR4_PT_PRESENT
-    bz r0, .can_dump_registers
-
-    ; seems to have page tables enabled
-    blw _puts, exception_unsupported_ptb_msg
-    b _fw_start.hang
-    
-.can_dump_registers:
-    ; restore return register
     pop rr
 
     mov r0, REG_PC

@@ -102,7 +102,7 @@ _fw_start:
 
     blw _mc_lock_ktrr
     blw _puts, fw_ktrr_msg
-    
+
 .hang:
     hlt
     b .hang
