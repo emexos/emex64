@@ -137,7 +137,6 @@ emex64_core_t *emex64_core_alloc()
 
 void emex64_core_dealloc(emex64_core_t *core)
 {
-    /* release core */
     free(core);
 }
 
@@ -146,7 +145,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
     uint64_t pc_addr = core->rl[kEmex64RegisterPC];
     if(unlikely(!emex64_mmu_access(core, pc_addr, kEmex64MMUAccessExec, &pc_addr)))
     {
-        /* MMU wrote exception */
+        /* MMU wrote exception, not needed to fill in our own */
         return false;
     }
 
@@ -165,7 +164,6 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
         }
     }
 
-    /* accessing memory */
     void *iptr = emex64_memory_access(core, pc_addr, 256);
     if(unlikely(iptr == NULL))
     {
@@ -173,11 +171,9 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
         return false;
     }
 
-    /* preparing bitwalker */
     bitwalker_t bw;
     bitwalker_init_read(&bw, iptr, 256, BW_LITTLE_ENDIAN);
 
-    /* getting opcode */
     enum kEmex64Opcode opcode = (uint8_t)bitwalker_read(&bw, 8);
     if(unlikely(opcode > kEmex64OpcodeMAX))
     {
@@ -188,21 +184,36 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
     core->op.opcode = opcode;
     core->op.op = kOpfuncTable[opcode];
 
-    /* parsing loop */
+    /*
+     * parameter decoder, this decoding loop decodes
+     * all parameters the instruction defines.
+     */
     uint8_t maxarg = core->op.op.maxargs;
     uint8_t i;
     for(i = 0; i < maxarg; i++)
     {
-        /* switch through modes */
         enum kEmex64ParameterCoding coding = (uint8_t)bitwalker_read(&bw, 3);
         core->op.param_coding[i] = coding;
         switch(coding)
         {
             case kEmex64ParameterCodingEnd:
+                /* a the weekend reference lol */
                 goto escape_from_la;
             case kEmex64ParameterCodingReg:
             {
                 uint8_t rcnt = (uint8_t)bitwalker_read(&bw, 5);
+
+                /*
+                 * userspace shouldn't be able to access control
+                 * registers, a attacker could defeat ASLR in the
+                 * future by reading CRPTB which is the page table
+                 * address.
+                 * 
+                 * another reason is that control registers define
+                 * execution behaviour. if a userspace program can
+                 * write to CREL or CRKSP, they can cause panics
+                 * or spy on the user.
+                 */
                 if(unlikely(rcnt > kEmex64RegisterRR && core->rl[kEmex64RegisterCR0] < kEmex64ElevationLevelKernel))
                 {
                     core->rl[kEmex64RegisterCR2] = kEmex64ExceptionPermission;
@@ -214,7 +225,11 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
             }
             case kEmex64ParameterCodingAddr64:
                 bitwalker_align_byte(&bw);
-                /* fallthrough */
+                /*
+                 * fallthrough, because kEmex64ParameterCodingAddr64
+                 * was invented to make relocation possible, because
+                 * the decoder would align to the next byte boundary.
+                 */
             case kEmex64ParameterCodingImm5:
             case kEmex64ParameterCodingImm8:
             case kEmex64ParameterCodingImm16:
@@ -246,38 +261,13 @@ static void *emex64_core_execute_thread(void *arg)
     emex64_core_t *core = arg;
     for(;;)
     {
-        /*
-         * if it is not in interrupt we can check for exceptions
-         * and more.
-         */
-        if(likely(!core->in_interrupt))
-        {
-            /* checking for exception */
-            if(unlikely(core->rl[kEmex64RegisterCR2] != kEmex64ExceptionNone))
-            {
-                core->halted = true;
-                emex64_raise_interrupt(core->machine, EMEX64_IRQ_EXCEPTION);
-            }
-            
-            /* checking if core is halted */
-            if(unlikely(core->halted))
-            {
-                /* yield cpu to not burn it */
-                usleep(100);
-                goto skip_execution;
-            }
-        }
-
-        /* decoding instruction and check if it was successful */
         if(unlikely(!emex64_core_decode_instruction_at_pc(core)))
         {
             continue;
         }
 
-        /* executing instruction */
+        /* the part of executing the instruction */
         core->op.op.func(core);
-
-        /* incrementing program counter by instruction size */
         core->rl[kEmex64RegisterPC] += core->op.ilen;
 
         /*
@@ -289,18 +279,36 @@ static void *emex64_core_execute_thread(void *arg)
          * because we would just immediately interrupt into another
          * interrupt handler in the interrupt vector table.
          */
-        if(unlikely(core->in_interrupt || core->op.opcode == kEmex64OpcodeIRET))
+        if(core->in_interrupt || core->op.opcode == kEmex64OpcodeIRET)
         {
             goto tick_timer;
         }
-
-        /* interrupt controller checking routine starts here */
-skip_execution:
+        else
+        {
+            /* handling exception if applicable */
+            if(unlikely(core->rl[kEmex64RegisterCR2] != kEmex64ExceptionNone))
+            {
+                core->halted = true;
+                emex64_raise_interrupt(core->machine, EMEX64_IRQ_EXCEPTION);
+            }
+            else if(unlikely(core->halted))
+            {
+                /*
+                 * causing the host OS to schedule the process
+                 * this way the cpu core is not burned.
+                 */
+                usleep(100);
+            }
+        }
 
         /* serve interrupt for the interrupt controller */
         emex64_serve_interrupt_if_needed(core);
 
-        /* tick the timer always */
+        /*
+         * tick the timer always (has to always be ticked for the interrupt controller)
+         * we cannot just freeze the thread, otherwise the timer won't fire any
+         * interrupts.
+         */
     tick_timer:
         emex64_timer_tick(core->machine->timer, emex64_get_host_cycles());
     }

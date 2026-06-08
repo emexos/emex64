@@ -60,7 +60,7 @@ emex64_machine_t *emex64_machine_alloc(uint64_t memory_size)
     }
     machine->core->machine = machine;
 
-    /* allocating devices*/
+    /* allocating devices */
     machine->intc = emex64_intc_alloc(machine);
     if(machine->intc == NULL)
     {
