@@ -30,7 +30,7 @@
 #include <pthread.h>
 #include <stdatomic.h>
 
-#define EMEX64_UART_BASE      0x1FE00300
+#define EMEX64_UART_BASE      0x0040000000000300
 #define EMEX64_UART_SIZE      0x10
 
 #define UART_BUF_SIZE          64

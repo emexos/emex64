@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define EMEX64_INTC_BASE      0x1FE00000
+#define EMEX64_INTC_BASE      0x0040000000000000
 #define EMEX64_INTC_SIZE      0x30
 
 /* internal devices */

@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <emex64lib/vm/core.h>
 
-#define EMEX64_TIMER_BASE     0x1FE00100
+#define EMEX64_TIMER_BASE     0x0040000000000100
 #define EMEX64_TIMER_SIZE     0x28
 
 #define TIMER_REG_CTRL      0x00

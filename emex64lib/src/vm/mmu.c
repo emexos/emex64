@@ -127,14 +127,6 @@ bool emex64_mmu_access(emex64_core_t *core,
                        kEmex64MMUAccess acc,
                        uint64_t *paddr)
 {
-    /* vaddr cannot be bigger than 53bits */
-    if(unlikely(vaddr >> 53))
-    {
-        /* not a valid address to begin with */
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-        return false;
-    }
-
     /*
      * find out if paging is enabled, if not write vaddr to paddr,
      * because that means paddr is vaddr because virtual addressing
@@ -149,6 +141,14 @@ bool emex64_mmu_access(emex64_core_t *core,
         /* incase paging is disabled virtual addresses are physical ones */
         *paddr = vaddr;
         return true;
+    }
+
+    /* vaddr cannot be bigger than 53bits */
+    if(unlikely(vaddr >> 53))
+    {
+        /* not a valid address to begin with */
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
+        return false;
     }
 
     /* get pfn of control register */
