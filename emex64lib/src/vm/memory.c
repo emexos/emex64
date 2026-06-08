@@ -171,24 +171,14 @@ void emex64_memory_read(emex64_core_t *core,
         return;
     }
 
-    switch(size)
+    uint64_t raw = *(uint64_t *)ptr;
+    if(__builtin_expect(size == 0 || size > 8 || (size & (size - 1)), 0))
     {
-        case 1:
-            *value = *(uint8_t *)ptr;
-            return;
-        case 2:
-            *value = *(uint16_t *)ptr;
-            return;
-        case 4:
-            *value = *(uint32_t *)ptr;
-            return;
-        case 8:
-            *value = *(uint64_t *)ptr;
-            return;
-        default:
-            core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-            return;
+        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
+        return;
     }
+    uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
+    *value = raw & mask;
 }
 
 void emex64_memory_write(emex64_core_t *core,
@@ -227,22 +217,8 @@ void emex64_memory_write(emex64_core_t *core,
         return;
     }
 
-    switch(size)
-    {
-        case 1:
-            *(uint8_t *)ptr = (uint8_t)value;
-            return;
-        case 2:
-            *(uint16_t *)ptr = (uint16_t)value;
-            return;
-        case 4:
-            *(uint32_t *)ptr = (uint32_t)value;
-            return;
-        case 8:
-            *(uint64_t *)ptr = value;
-            return;
-        default:
-            core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-            return;
-    }
+    uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
+    uint64_t raw = *(uint64_t *)ptr;
+    raw = (raw & ~mask) | (value & mask);
+    *(uint64_t *)ptr = raw;
 }
