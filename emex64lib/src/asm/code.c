@@ -296,7 +296,7 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
 
         assembler_line_t *al = calloc(1, sizeof(assembler_line_t));
         al->str = entries[i].code;
-        al->line_num = ++file_line_counters[file_idx];
+        al->line_num = ++file_line_counters[file_idx] + 1;
         al->file_idx = file_idx;
         al->inv = inv;
         inv->line[inv->line_cnt++] = al;
