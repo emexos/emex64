@@ -157,7 +157,7 @@ static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
     if(core->rl[kEmex64RegisterCR0] >= kEmex64ElevationLevelKernel)
     {
         if(core->machine->memory->ktrr_locked &&
-           core->machine->memory->ktrr_size <= pc_addr)
+           core->machine->memory->ktrr_size < pc_addr)
         {
             /* a KTRR violation. OOB of KTRR region. */
             core->rl[kEmex64RegisterCR2] = kEmex64ExceptionKTRRViolation;
