@@ -6,7 +6,7 @@ VM = emex64vm
 # firmware headers
 INCDIR = $(abspath ./inc)
 
-ASMFLAGS = -fno_page_align -I$(INCDIR)
+ASMFLAGS = -fno_page_align -I$(INCDIR) -DPUT_DRAW_LOGO="1"
 LDSCRIPT = $(abspath ./emex64.e64ld)
 
 SRCDIR = src

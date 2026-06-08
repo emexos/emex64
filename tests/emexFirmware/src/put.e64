@@ -26,8 +26,11 @@
 
 ; normal ass data for the system
 section .data
+%ifdef% PUT_DRAW_LOGO
     putc_uart_logo db "\n         +++++++++++++\n        ++++++++++++++\n       +++++++++++++++\n      ++++++++++++++++\n     +++++      ++++++\n    +++++      ++++++ \n   +++++      ++++++  \n  +++++      ++++++   \n +++++      ++++++    \n+++++      ++++++     \n+++++      +++++      \n +++++      +++       \n  +++++      +        \n   +++++              \n    +++++             \n     +++++            \n      ++++++++++++++++\n       +++++++++++++++\n        ++++++++++++++\n         +++++++++++++\n\0"
     putc_copyright db "\nemexLabs(c) 2026\n\n\0"
+    raw_logo df "./logo.raw"
+%endif%
     putc_sym dq _gui_putc
 
 ; memory units for _put_mem
@@ -39,9 +42,7 @@ section .data
     mem_unit_tb db "TB\0"
     mem_unit_ptrs dq mem_unit_b, mem_unit_kb, mem_unit_mb, mem_unit_gb, mem_unit_tb
 
-; raw logo!
-section .data
-    raw_logo df "./logo.raw"
+%ifdef% PUT_DRAW_LOGO
 
 ; i know this belongs into gui.e64
 _draw_scaled_logo:
@@ -98,6 +99,8 @@ _draw_scaled_logo:
 .done:
     wret
 
+%endif%
+
 _putc:
     ldq r1, putc_sym
     b r1
@@ -107,13 +110,17 @@ _put_init:
     bnz r0, .end_gui
 .end_uart:
     stq putc_sym, _uart_putc
+%ifdef% PUT_DRAW_LOGO
     blw _puts, putc_uart_logo
     blw _puts, putc_copyright
+%endif%
     wret
 .end_gui:
+%ifdef% PUT_DRAW_LOGO
     blw _draw_scaled_logo, 6, 15, 15    
     stw gui_line, 14
     blw _puts, putc_copyright
+%endif%
     wret
 
 _puts:
