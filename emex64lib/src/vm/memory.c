@@ -134,15 +134,11 @@ void *emex64_memory_access(emex64_core_t *core,
                            size_t size)
 {
     assert(size != 0);
-
-    uint64_t addr_end = addr + size;
-    if(addr >= addr_end || core->machine->memory->memory_size < addr_end)
+    if(__builtin_expect((addr | size) >> 32 || addr + size > core->machine->memory->memory_size, 0))
     {
-        /* attempt to access memory is OOB. */
         return NULL;
     }
-
-    return &(core->machine->memory->memory[addr]);
+    return core->machine->memory->memory + addr;
 }
 
 void emex64_memory_read(emex64_core_t *core,
@@ -156,25 +152,30 @@ void emex64_memory_read(emex64_core_t *core,
         return;
     }
 
-    /* MMIO devices exist ^^ */
-    emex64_mmio_region_t *mmio = emex64_mmio_find(core->machine->mmio_bus, addr);
-    if(mmio != NULL)
+    if(addr >> 53)
     {
-        *value = unlikely(mmio->read != NULL)  ? mmio->read(core, mmio->device, addr - mmio->base_addr, (int)size) : 0;
-        return;
+        /* MMIO devices exist ^^ */
+        emex64_mmio_region_t *mmio_region = emex64_mmio_find(core->machine->mmio_bus, addr);
+        if(likely(mmio_region != NULL && mmio_region->read != NULL))
+        {
+            *value = mmio_region->read(core, mmio_region->device, addr - mmio_region->base_addr, (int)size);
+            return;
+        }
+    }
+    else
+    {
+        void *ptr = emex64_memory_access(core, addr, size);
+        if(likely(ptr != NULL))
+        {
+            /* read data */
+            uint64_t raw = *(uint64_t *)ptr;
+            uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
+            *value = raw & mask;
+            return;
+        }
     }
 
-    void *ptr = emex64_memory_access(core, addr, size);
-    if(unlikely(ptr == NULL))
-    {
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-        return;
-    }
-
-    /* read data */
-    uint64_t raw = *(uint64_t *)ptr;
-    uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
-    *value = raw & mask;
+    core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
 }
 
 void emex64_memory_write(emex64_core_t *core,
@@ -188,34 +189,36 @@ void emex64_memory_write(emex64_core_t *core,
         return;
     }
 
-    /* checking against KTRR */
-    if(unlikely(core->machine->memory->ktrr_size >= addr))
+    if(addr >> 53)
     {
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionKTRRViolation;
-        return;
-    }
-
-    /* MMIO devices exist ^^ */
-    emex64_mmio_region_t *mmio = emex64_mmio_find(core->machine->mmio_bus, addr);
-    if(mmio != NULL)
-    {
-        if(unlikely(mmio->write != NULL))
+        /* MMIO devices exist ^^ */
+        emex64_mmio_region_t *mmio_region = emex64_mmio_find(core->machine->mmio_bus, addr);
+        if(likely(mmio_region != NULL && mmio_region->write != NULL))
         {
-            mmio->write(core, mmio->device, addr - mmio->base_addr, value, (int)size);
+            mmio_region->write(core, mmio_region->device, addr - mmio_region->base_addr, value, (int)size);
+            return;
         }
-        return;
     }
-
-    void *ptr = emex64_memory_access(core, addr, size);
-    if(unlikely(ptr == NULL))
+    else
     {
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-        return;
+        /* checking against KTRR */
+        if(unlikely(core->machine->memory->ktrr_size >= addr))
+        {
+            core->rl[kEmex64RegisterCR2] = kEmex64ExceptionKTRRViolation;
+            return;
+        }
+
+        void *ptr = emex64_memory_access(core, addr, size);
+        if(likely(ptr != NULL))
+        {
+            /* writing data */
+            uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
+            uint64_t raw = *(uint64_t *)ptr;
+            raw = (raw & ~mask) | (value & mask);
+            *(uint64_t *)ptr = raw;
+            return;
+        }
     }
 
-    /* writing data */
-    uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
-    uint64_t raw = *(uint64_t *)ptr;
-    raw = (raw & ~mask) | (value & mask);
-    *(uint64_t *)ptr = raw;
+    core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
 }

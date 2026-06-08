@@ -39,38 +39,21 @@
 #define EMEX64_BYTES_TO_PAGE_BOUNDARY(addr) (EMEX64_PAGE_SIZE - ((uintptr_t)(addr) & EMEX64_PAGE_MASK))
 #define EMEX64_CROSS_PAGE_OFFSET(addr, access_size) (((access_size) > EMEX64_BYTES_TO_PAGE_BOUNDARY(addr)) ? EMEX64_BYTES_TO_PAGE_BOUNDARY(addr) : 0)
 
-#define EMEX64_MEMORY_WRITE_HELPER(mapping, offset, size, value)  \
-    switch(size)                                                \
-    {                                                           \
-        case 1: /* 8 bit */                                     \
-            *(uint8_t*)(((uint8_t*)mapping) + offset) = value;  \
-            break;                                              \
-        case 2: /* 16 bit */                                    \
-            *(uint16_t*)(((uint8_t*)mapping) + offset) = value; \
-            break;                                              \
-        case 4: /* 32 bit */                                    \
-            *(uint32_t*)(((uint8_t*)mapping) + offset) = value; \
-            break;                                              \
-        case 8: /* 64 bit */                                    \
-            *(uint64_t*)(((uint8_t*)mapping) + offset) = value; \
-            break;                                              \
+#define EMEX64_MEMORY_WRITE_HELPER(mapping, offset, size, value)        \
+    {                                                                   \
+        uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1; \
+        void *ptr = ((uint8_t*)mapping) + offset;                       \
+        uint64_t raw = *(uint64_t *)ptr;                                \
+        raw = (raw & ~mask) | (value & mask);                           \
+        *(uint64_t *)ptr = raw;                                         \
     }
 
-#define EMEX64_MEMORY_READ_HELPER(mapping, offset, size, out_value)       \
-    switch(size)                                                        \
+#define EMEX64_MEMORY_READ_HELPER(mapping, offset, size, out_value)     \
     {                                                                   \
-        case 1:                                                         \
-            (out_value) = *(uint8_t*)(((uint8_t*)mapping) + offset);    \
-            break;                                                      \
-        case 2:                                                         \
-            (out_value) = *(uint16_t*)(((uint8_t*)mapping) + offset);   \
-            break;                                                      \
-        case 4:                                                         \
-            (out_value) = *(uint32_t*)(((uint8_t*)mapping) + offset);   \
-            break;                                                      \
-        case 8:                                                         \
-            (out_value) = *(uint64_t*)(((uint8_t*)mapping) + offset);   \
-            break;                                                      \
+        void *ptr = ((uint8_t*)mapping) + offset;                       \
+        uint64_t raw = *(uint64_t *)ptr;                                \
+        uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1; \
+        out_value = raw & mask;                                         \
     }
 
 typedef struct emex64_memory {

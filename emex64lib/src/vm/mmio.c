@@ -38,11 +38,11 @@ void emex64_mmio_dealloc(emex64_mmio_bus_t *bus)
 }
 
 bool emex64_mmio_register(emex64_mmio_bus_t *bus,
-                        uint64_t base,
-                        uint64_t size,
-                        void *device,
-                        mmio_read_fn read,
-                        mmio_write_fn write)
+                          uint64_t base,
+                          uint64_t size,
+                          void *device,
+                          mmio_read_fn read,
+                          mmio_write_fn write)
 {
     assert(bus->region_count < MAX_MMIO_REGIONS);
 
@@ -81,15 +81,8 @@ bool emex64_mmio_register(emex64_mmio_bus_t *bus,
 }
 
 emex64_mmio_region_t *emex64_mmio_find(emex64_mmio_bus_t *bus,
-                                   uint64_t addr)
+                                       uint64_t addr)
 {
-    /* sanity check */
-    if(addr < bus->start_addr ||
-       addr > bus->end_addr)
-    {
-        return NULL;
-    }
-
     /* fast path */
     if(bus->last_region != NULL &&
         addr >= bus->last_region->base_addr &&

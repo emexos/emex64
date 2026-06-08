@@ -42,6 +42,7 @@ _gui_putc:
     mul r1, 8
     mul r2, 10
     add r2, 2
+    add r1, 2
     
     cmp r0, '\n'
     be .newline
