@@ -144,7 +144,7 @@ void emex64_core_dealloc(emex64_core_t *core)
 static inline bool emex64_core_decode_instruction_at_pc(emex64_core_t *core)
 {
     uint64_t pc_addr = core->rl[kEmex64RegisterPC];
-    if(unlikely(!emex64_mmu_access(core, pc_addr, kEmex64MMUAccessRead, &pc_addr)))
+    if(unlikely(!emex64_mmu_access(core, pc_addr, kEmex64MMUAccessExec, &pc_addr)))
     {
         /* MMU wrote exception */
         return false;
