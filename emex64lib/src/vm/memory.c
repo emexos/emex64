@@ -173,11 +173,6 @@ void emex64_memory_read(emex64_core_t *core,
 
     /* read data */
     uint64_t raw = *(uint64_t *)ptr;
-    if(__builtin_expect(size == 0 || size > 8 || (size & (size - 1)), 0))
-    {
-        core->rl[kEmex64RegisterCR2] = kEmex64ExceptionBadAccess;
-        return;
-    }
     uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
     *value = raw & mask;
 }
