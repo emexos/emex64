@@ -266,7 +266,6 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
         return false;
     }
 
-    free(am[c].inject_token);
     free(am);
 
     return true;
