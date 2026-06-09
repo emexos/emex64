@@ -82,8 +82,17 @@ typedef: uint8_t {
     kELFSymbolVisibilityProtected = 3,
 } kELFSymbolVisibility;
 
-typedef: uint8_t {
+typedef: uint16_t {
     kELFSectionHeaderIndexUndefined =   0,
+    kELFSectionHeaderIndexText =        1,
+    kELFSectionHeaderIndexData =        2,
+    kELFSectionHeaderIndexBSS =         3,
+    kELFSectionHeaderIndexRelaText =    4,
+    kELFSectionHeaderIndexRelaData =    5,
+    kELFSectionHeaderIndexSymtab =      6,
+    kELFSectionHeaderIndexStrtab =      7,
+    kELFSectionHeaderIndexSHSTRTAB =    8,
+    kELFSectionHeaderIndexCount =       9,
     kELFSectionHeaderIndexAbsolute =    0xFFF1,
 } kELFSectionHeaderIndex;
 
