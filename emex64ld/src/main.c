@@ -391,7 +391,7 @@ static uint64_t sym_resolve(const Obj *o, uint32_t sym_idx)
             }
         }
 
-        diag_error(NULL, "undefined symbol '%s'\n", name);
+        diag_error(NULL, "undefined symbol '%s', needed by \"%s\"\n", name, o->object_path);
         exit(1); /* TODO: somehow make it not as strict, so it becomes embeddable */
     }
     return 0;
