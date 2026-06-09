@@ -45,7 +45,8 @@ emex64_memory_t *emex64_memory_alloc(uint64_t size)
     /*
      * allocating random access memory, which
      * must be aligned to page size for the
-     * sake of god.
+     * sake of god. And because it makes sense
+     * lol.
      */
     emex64_memory_t *memory = malloc(sizeof(emex64_memory_t));
     if(memory == NULL)
@@ -53,7 +54,7 @@ emex64_memory_t *emex64_memory_alloc(uint64_t size)
         return NULL;
     }
 
-    /* allocate raw memory (using mmap for larger sizes, better than heap in this case) */
+    /* allocate raw memory (using mmap for larger sizes, better than malloc in this case) */
     memory->memory_size = EMEX64_PAGE_ROUND_UP(size);
     memory->memory = mmap(NULL, memory->memory_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if(memory->memory == MAP_FAILED)
@@ -75,19 +76,17 @@ bool emex64_memory_load_image(emex64_memory_t *memory,
                               const char *image_path)
 {
     /*
-     * opening bios image with RO(read-only)
-     * access, which is because we don't
-     * write to it and we shall not write
-     * to it.
+     * opening firmware image with RO(read-only)
+     * access, which is because it is more efficient,
+     * atleast I think that x3.
      */
     int fd = open(image_path, O_RDONLY);
     if(fd == -1)
     {
-        diag_error(NULL, "failed to open boot image at path \"%s\"\n", image_path);
+        diag_error(NULL, "failed to open firmware image at path \"%s\"\n", image_path);
         return false;
     }
 
-    /* gather size of bios image */
     struct stat image_stat;
     if(fstat(fd, &image_stat) != 0)
     {
@@ -100,7 +99,7 @@ bool emex64_memory_load_image(emex64_memory_t *memory,
     if(image_size > memory->memory_size)
     {
         close(fd);
-        diag_error(NULL, "boot image is too large\n");
+        diag_error(NULL, "firmware image is too large\n");
         return false;
     }
 
@@ -108,15 +107,8 @@ bool emex64_memory_load_image(emex64_memory_t *memory,
      * overmap the memory with the file in a dirty way tehe ^^
      * meaning that when ever the vm writes to this memory
      * it will become writable as the OS then copies the memory
-     * to a writable page, this is much faster as usually those
-     * pages aren't written to anyways, especially after the
-     * assembler will start to emit a _linker_start symbol for
-     * which does all the setup, like it will set the .bss pointers
-     * as they usually shouldn't be part of the image anyways.
-     * 
-     * and with ABI it will be handled by the OS dynamic linker.
-     * 
-     * wen eta object file format object.h being done.
+     * to a writable page, this is much faster than copying it
+     * our selves.
      */
     void *mapped = mmap(memory->memory, image_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, 0);
     close(fd);
@@ -148,13 +140,20 @@ void emex64_memory_read(emex64_core_t *core,
 {
     if(unlikely(!emex64_mmu_access(core, addr, kEmex64MMUAccessRead, &addr)))
     {
-        /* MMU wrote exception */
+        /* MMU wrote exception, no need to write it our selves */
         return;
     }
 
+    /*
+     * MMIO starts at 0x0040000000000000 while the physical
+     * maximum memory size is 0x003FFFFFFFFFFFFF, that is so
+     * MMIO doesnt sit in middle of the memory, which is better
+     * for page memory management on the OS side and faster cuz
+     * we don't have to look it up in MMIO on every memory
+     * access.
+     */
     if(addr >> 53)
     {
-        /* MMIO devices exist ^^ */
         emex64_mmio_region_t *mmio_region = emex64_mmio_find(core->machine->mmio_bus, addr);
         if(likely(mmio_region != NULL && mmio_region->read != NULL))
         {
@@ -167,7 +166,7 @@ void emex64_memory_read(emex64_core_t *core,
         void *ptr = emex64_memory_access(core, addr, size);
         if(likely(ptr != NULL))
         {
-            /* read data */
+            /* ram read */
             uint64_t raw = *(uint64_t *)ptr;
             uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
             *value = raw & mask;
@@ -185,13 +184,20 @@ void emex64_memory_write(emex64_core_t *core,
 {
     if(unlikely(!emex64_mmu_access(core, addr, kEmex64MMUAccessWrite, &addr)))
     {
-        /* MMU wrote exception */
+        /* MMU wrote exception, no need to write it our selves */
         return;
     }
 
+    /*
+     * MMIO starts at 0x0040000000000000 while the physical
+     * maximum memory size is 0x003FFFFFFFFFFFFF, that is so
+     * MMIO doesnt sit in middle of the memory, which is better
+     * for page memory management on the OS side and faster cuz
+     * we don't have to look it up in MMIO on every memory
+     * access.
+     */
     if(addr >> 53)
     {
-        /* MMIO devices exist ^^ */
         emex64_mmio_region_t *mmio_region = emex64_mmio_find(core->machine->mmio_bus, addr);
         if(likely(mmio_region != NULL && mmio_region->write != NULL))
         {
@@ -201,7 +207,10 @@ void emex64_memory_write(emex64_core_t *core,
     }
     else
     {
-        /* checking against KTRR */
+        /*
+         * preventing Kernel Text Read-Only Region
+         * writes.
+         */
         if(unlikely(core->machine->memory->ktrr_size >= addr))
         {
             core->rl[kEmex64RegisterCR2] = kEmex64ExceptionKTRRViolation;
@@ -211,7 +220,7 @@ void emex64_memory_write(emex64_core_t *core,
         void *ptr = emex64_memory_access(core, addr, size);
         if(likely(ptr != NULL))
         {
-            /* writing data */
+            /* ram write */
             uint64_t mask = (size == 8) ? ~0ULL : (1ULL << (size * 8)) - 1;
             uint64_t raw = *(uint64_t *)ptr;
             raw = (raw & ~mask) | (value & mask);

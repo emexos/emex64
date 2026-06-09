@@ -31,28 +31,24 @@
 
 emex64_machine_t *emex64_machine_alloc(uint64_t memory_size)
 {
-    /* allocating brand new machine */
     emex64_machine_t *machine = calloc(1, sizeof(emex64_machine_t));
     if(machine == NULL)
     {
         return NULL;
     }
 
-    /* allocate random access memory */
     machine->memory = emex64_memory_alloc(memory_size);
     if(machine->memory == NULL)
     {
         goto out_release_machine;
     }
 
-    /* allocating mmio controller */
     machine->mmio_bus = emex64_mmio_alloc();
     if(machine->mmio_bus == NULL)
     {
         goto out_release_memory;
     }
 
-    /* allocating main core */
     machine->core = emex64_core_alloc();
     if(machine->core == NULL)
     {
@@ -60,7 +56,6 @@ emex64_machine_t *emex64_machine_alloc(uint64_t memory_size)
     }
     machine->core->machine = machine;
 
-    /* allocating devices */
     machine->intc = emex64_intc_alloc(machine);
     if(machine->intc == NULL)
     {
@@ -79,7 +74,6 @@ emex64_machine_t *emex64_machine_alloc(uint64_t memory_size)
         goto out_release_timer;
     }
 
-    /* register device less(means without allocation) devices */
     if(!emex64_mmio_register(machine->mmio_bus, EMEX64_RTC_BASE, EMEX64_RTC_SIZE, NULL, emex64_rtc_read, NULL))
     {
         goto out_release_uart;
