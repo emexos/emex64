@@ -123,13 +123,19 @@ static const uint8_t kImmBits[] = {
 
 emex64_core_t *emex64_core_alloc()
 {
-    /* allocate a brand new core */
     emex64_core_t *core = calloc(1, sizeof(emex64_core_t));
     if(core == NULL)
     {
         return NULL;
     }
 
+    /*
+     * setting it up with secure monitor, because
+     * otherwise the core would sit in usermode
+     * at start and the firmware wouldn't be able
+     * to write to control registers, ultimatively
+     * rendering the entire state useless.
+     */
     core->rl[kEmex64RegisterCR0] = kEmex64ElevationLevelSecureMonitor;
 
     return core;
@@ -321,11 +327,14 @@ void emex64_core_execute(emex64_core_t *core)
 {
     assert(core != NULL || core->pthread != 0);
 
-    /* invoking execution */
     pthread_create(&(core->pthread), NULL, emex64_core_execute_thread, (void*)core);
 
     #if EMEX64VM_DEVICE_DISPLAY
     #if defined(__APPLE__)
+    /*
+     * on Apple platforms the main thread must be in a run loop
+     * in order to show the display.
+     */
     CFRunLoopRun();
     #endif /* __APPLE__ */
     #endif /* #if EMEX64VM_DEVICE_DISPLAY */
