@@ -1,12 +1,38 @@
 # Makefile
+ASM = emex64asm
+LD = emex64ld
+VM = emex64vm
 
-all: compile execute clean
+# firmware headers
+INCDIR = $(abspath ./../emexFirmware/inc)
 
-compile:
-	emex64asm -fno_page_align -fno_absolute_addr_align -o hello src/*.e64
+ASMFLAGS = -fno_page_align -I$(INCDIR)
+LDSCRIPT = $(abspath ./../emexFirmware/emex64.e64ld)
+
+SRCDIR = src
+BUILDDIR = build
+TARGET = $(BUILDDIR)/emex64fw
+
+SRCS = $(wildcard $(SRCDIR)/*.e64)
+OBJS = $(patsubst $(SRCDIR)/%.e64,$(BUILDDIR)/%.e64o,$(SRCS))
+
+LINK_ORDER := $(BUILDDIR)/start.e64o
+
+all: compile execute
+
+compile: $(TARGET)
+
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+$(BUILDDIR)/%.e64o: $(SRCDIR)/%.e64 | $(BUILDDIR)
+	$(ASM) $(ASMFLAGS) -o $@ $<
+
+$(TARGET): $(LINK_ORDER) $(LDSCRIPT)
+	$(LD) -T $(LDSCRIPT) -o $@ $(LINK_ORDER)
 
 execute:
-	emex64vm --bios ./hello
+	$(VM) --firmware $(TARGET)
 
 clean:
-	rm hello
+	rm -rf $(BUILDDIR)
