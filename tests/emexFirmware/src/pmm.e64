@@ -22,12 +22,13 @@
 ; SOFTWARE.
 ;
 
+
+%include% <emex64.e64inc>
+
 section .bss
     pmm_init_once db 1                              ; once initilizer boolean
     pmm_master_ptr dq 1                             ; address that points at the main page
     pmm_max_pages dq 1                              ; count of pages
-
-%include% <emex64.e64h>
 
 _pmm_page_addr:
     mul rr, r0, PAGE_SIZE                           ; page number by size equals address

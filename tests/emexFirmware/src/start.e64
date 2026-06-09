@@ -22,7 +22,7 @@
 ; SOFTWARE.
 ;
 
-%include% <emex64.e64h>
+%include% <emex64.e64inc>
 
 section .data
     fw_font_test_msg db "[fw] firmware font test\n     ABCDEFGHIJKLMNOPQRSTUVWXYZ\n     abcdefghijklmnopqrstuvwxyz\n     0123456789\n     @#%^&*()!<>?:;\n\0"

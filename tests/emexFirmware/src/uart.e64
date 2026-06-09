@@ -22,7 +22,7 @@
 ; SOFTWARE.
 ;
 
-%include% <emex64.e64h>
+%include% <emex64.e64inc>
 
 _uart_putc:
 .start:

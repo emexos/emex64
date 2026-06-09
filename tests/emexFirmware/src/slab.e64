@@ -22,7 +22,8 @@
 ; SOFTWARE.
 ;
 
-%include% <emex64.e64h>
+%include% <emex64.e64inc>
+
 %define% SLAB_META_SIZE         64                              ; size of slab metadata
 
 %define% SLAB_OFF_BASE          0x00

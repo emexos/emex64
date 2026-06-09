@@ -22,7 +22,7 @@
 ; SOFTWARE.
 ;
 
-%include% <emex64.e64h>
+%include% <emex64.e64inc>
 
 section .bss
     ivec dq 63
