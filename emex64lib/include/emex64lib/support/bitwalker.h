@@ -164,8 +164,7 @@ static inline uint64_t bitwalker_read(bitwalker_t *bw,
     memcpy(&chunk, bw->buffer + bw->byte_pos, n);
 
     /* now lets set the schunk and so on */
-    uint64_t schunk = (uint64_t)(chunk >> bw->bit_idx);
-    uint64_t value = schunk & ((num_bits == 64) ? UINT64_MAX : ((1ULL << num_bits) - 1));
+    uint64_t value = (uint64_t)(chunk >> bw->bit_idx) & ((num_bits == 64) ? UINT64_MAX : ((1ULL << num_bits) - 1));
     uint32_t total_bits = bw->bit_idx + num_bits;
     bw->byte_pos += total_bits >> 3;
     bw->bit_idx = total_bits & 7;

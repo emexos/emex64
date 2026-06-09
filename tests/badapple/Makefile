@@ -16,25 +16,33 @@ TARGET = $(BUILDDIR)/emex64fw
 SRCS = $(wildcard $(SRCDIR)/*.e64)
 OBJS = $(patsubst $(SRCDIR)/%.e64,$(BUILDDIR)/%.e64o,$(SRCS))
 
-LINK_ORDER = \
-    $(BUILDDIR)/badapple.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/put.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/gui.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/uart.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/font.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/interrupt.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/pmm.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/mc.e64o \
-    $(BUILDDIR)/../../emexFirmware/build/mem.e64o
+LINK_ORDER := $(BUILDDIR)/badapple.e64o
 
 all: all-full
 
+all-full: LINK_ORDER += $(BUILDDIR)/../../emexFirmware/build/put.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/gui.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/uart.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/font.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/interrupt.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/pmm.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/mc.e64o \
+						$(BUILDDIR)/../../emexFirmware/build/mem.e64o
 all-full: ASMFLAGS += -DFULL="1"
 all-full: compile execute
 
+all-benchmark: LINK_ORDER += $(BUILDDIR)/../../emexFirmware/build/put.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/gui.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/uart.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/font.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/interrupt.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/pmm.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/mc.e64o \
+						     $(BUILDDIR)/../../emexFirmware/build/mem.e64o
 all-benchmark: ASMFLAGS += -DBENCHMARK="1"
 all-benchmark: compile execute
 
+all-benchmark: ASMFLAGS += -DMINIMAL="1"
 all-minimal: compile execute
 
 compile: $(TARGET)
