@@ -47,8 +47,6 @@ typedef struct {
     emex64_mmio_region_t *last_region;
     emex64_mmio_region_t regions[MAX_MMIO_REGIONS];
     int region_count;
-    uint64_t start_addr;
-    uint64_t end_addr;
 } emex64_mmio_bus_t;
 
 emex64_mmio_bus_t *emex64_mmio_alloc(void);

@@ -63,17 +63,6 @@ bool emex64_mmio_register(emex64_mmio_bus_t *bus,
 {
     assert(bus->region_count < MAX_MMIO_REGIONS);
 
-    /* overlap check */
-    for(int i = 0; i < bus->region_count; i++)
-    {
-        emex64_mmio_region_t *r = &bus->regions[i];
-        if(base < r->base_addr + r->size &&
-           base + size > r->base_addr)
-        {
-            return false;
-        }
-    }
-
     /* setup mmio region */
     emex64_mmio_region_t *region = &bus->regions[bus->region_count++];
     region->base_addr = base;
@@ -81,18 +70,6 @@ bool emex64_mmio_register(emex64_mmio_bus_t *bus,
     region->device = device;
     region->read = read ? read : emex64_mmio_fallback_read;
     region->write = write ? write : emex64_mmio_fallback_write;
-
-    /* check and set addresses */
-    if(bus->start_addr > base)
-    {
-        bus->start_addr = base;
-    }
-
-    uint64_t end_addr_canditate = base + size;
-    if(bus->end_addr < end_addr_canditate)
-    {
-        bus->end_addr = end_addr_canditate;
-    }
 
     return true;
 }
