@@ -1,4 +1,4 @@
-syntax "emex64" "\.e64$"
+syntax "emex64" "\.(e64|e64inc)$"
 
 # NUMBERS
 color red "\b(0x|0b)[0-9A-Fa-f]+\b"
