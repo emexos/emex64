@@ -32,7 +32,6 @@ endif()
 add_library(emex64 ${LIB_TYPE}
     # Support
 
-    src/support/bitwalker.c
     src/support/parser.c
     src/support/fdwalker.c
     src/support/diag.c
