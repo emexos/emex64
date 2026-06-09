@@ -41,7 +41,7 @@
 #include <emex64lib/asm/label.h>
 #include <emex64lib/asm/emit.h>
 #include <emex64lib/asm/section.h>
-#include <emex64lib/asm/elf.h>
+#include <emex64lib/linker/elf.h>
 
 typedef struct {
     uint8_t *data;
@@ -110,19 +110,6 @@ static size_t strtab_intern(buf_t *strtab, const char *s)
     return off;
 }
 
-enum {
-    SHIDX_NULL =        0,
-    SHIDX_TEXT =        1,
-    SHIDX_DATA =        2,
-    SHIDX_BSS =         3,
-    SHIDX_RELA_TEXT =   4,
-    SHIDX_RELA_DATA =   5,
-    SHIDX_SYMTAB =      6,
-    SHIDX_STRTAB =      7,
-    SHIDX_SHSTRTAB =    8,
-    SHIDX_COUNT =       9,
-};
-
 bool assembler_elf_emit(assembler_invocation_t *inv)
 {
     bool ok = false;
@@ -178,56 +165,56 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
     buf_t strtab_buf = {0};
 
     buf_append_u8(&strtab_buf, 0);
-    Emex64_Sym sym0 = {0};
+    ELF64_Sym sym0 = {0};
     buf_append(&sym_buf, &sym0, sizeof(sym0));
 
     const char *src_fname = (inv->file_cnt > 0) ? inv->file[0]->path : "<unknown>";
     const char *base = strrchr(src_fname, '/');
     base = base ? base + 1 : src_fname;
 
-    Emex64_Sym sym_file = {
+    ELF64_Sym sym_file = {
         .st_name = (uint32_t)strtab_intern(&strtab_buf, base),
-        .st_info = EMEX64_SYM_INFO(STB_LOCAL, STT_FILE),
-        .st_other = STV_DEFAULT,
-        .st_shndx = SHN_ABS,
+        .st_info = ELF_SYM_INFO(kELFSymbolTableBindingLocal, kELFSymbolTableTypeFile),
+        .st_other = kELFSymbolVisibilityDefault,
+        .st_shndx = kELFSectionHeaderNumberAbsolute,
         .st_value = 0,
         .st_size = 0,
     };
     buf_append(&sym_buf, &sym_file, sizeof(sym_file));
 
-    Emex64_Sym sym_text_sec = {
+    ELF64_Sym sym_text_sec = {
         .st_name = 0,
-        .st_info = EMEX64_SYM_INFO(STB_LOCAL, STT_SECTION),
-        .st_other = STV_DEFAULT,
-        .st_shndx = SHIDX_TEXT,
+        .st_info = ELF_SYM_INFO(kELFSymbolTableBindingLocal, kELFSymbolTableTypeSection),
+        .st_other = kELFSymbolVisibilityDefault,
+        .st_shndx = kELFSectionHeaderIndexText,
         .st_value = 0,
         .st_size = 0,
     };
-    Emex64_Sym sym_data_sec = {
+    ELF64_Sym sym_data_sec = {
         .st_name = 0,
-        .st_info = EMEX64_SYM_INFO(STB_LOCAL, STT_SECTION),
-        .st_other = STV_DEFAULT,
-        .st_shndx = SHIDX_DATA,
+        .st_info = ELF_SYM_INFO(kELFSymbolTableBindingLocal, kELFSymbolTableTypeSection),
+        .st_other = kELFSymbolVisibilityDefault,
+        .st_shndx = kELFSectionHeaderIndexData,
         .st_value = 0,
         .st_size = 0,
     };
-    Emex64_Sym sym_bss_sec = {
+    ELF64_Sym sym_bss_sec = {
         .st_name = 0,
-        .st_info = EMEX64_SYM_INFO(STB_LOCAL, STT_SECTION),
-        .st_other = STV_DEFAULT,
-        .st_shndx = SHIDX_BSS,
+        .st_info = ELF_SYM_INFO(kELFSymbolTableBindingLocal, kELFSymbolTableTypeSection),
+        .st_other = kELFSymbolVisibilityDefault,
+        .st_shndx = kELFSectionHeaderIndexBSS,
         .st_value = 0,
         .st_size = 0,
     };
 
-    size_t local_section_text_idx __attribute__((unused)) = sym_buf.len / sizeof(Emex64_Sym);
+    size_t local_section_text_idx __attribute__((unused)) = sym_buf.len / sizeof(ELF64_Sym);
     buf_append(&sym_buf, &sym_text_sec, sizeof(sym_text_sec));
-    size_t local_section_data_idx __attribute__((unused)) = sym_buf.len / sizeof(Emex64_Sym);
+    size_t local_section_data_idx __attribute__((unused)) = sym_buf.len / sizeof(ELF64_Sym);
     buf_append(&sym_buf, &sym_data_sec, sizeof(sym_data_sec));
-    size_t local_section_bss_idx __attribute__((unused))  = sym_buf.len / sizeof(Emex64_Sym);
+    size_t local_section_bss_idx __attribute__((unused))  = sym_buf.len / sizeof(ELF64_Sym);
     buf_append(&sym_buf, &sym_bss_sec,  sizeof(sym_bss_sec));
 
-    uint32_t first_global = (uint32_t)(sym_buf.len / sizeof(Emex64_Sym));
+    uint32_t first_global = (uint32_t)(sym_buf.len / sizeof(ELF64_Sym));
 
     for(uint64_t i = 0; i < inv->label_cnt; i++)
     {
@@ -243,29 +230,29 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
 
         if(inv->data_section_start != UINT64_MAX && addr >= inv->data_section_start && addr < data_end_raw)
         {
-            shndx = SHIDX_DATA;
+            shndx = kELFSectionHeaderIndexData;
             st_value = addr - inv->data_section_start;
         }
         else if(inv->bss_section_start != UINT64_MAX && addr >= bss_start && addr < bss_end)
         {
-            shndx = SHIDX_BSS;
+            shndx = kELFSectionHeaderIndexBSS;
             st_value = addr - bss_start;
         }
         else if(addr >= text_start)
         {
-            shndx = SHIDX_TEXT;
+            shndx = kELFSectionHeaderIndexText;
             st_value = addr - text_start;
         }
         else
         {
-            shndx = SHN_ABS;
+            shndx = kELFSectionHeaderNumberAbsolute;
             st_value = addr;
         }
 
-        Emex64_Sym sym = {
+        ELF64_Sym sym = {
             .st_name = (uint32_t)strtab_intern(&strtab_buf, lbl->name),
-            .st_info = EMEX64_SYM_INFO(STB_GLOBAL, STT_NOTYPE),
-            .st_other = STV_DEFAULT,
+            .st_info = ELF_SYM_INFO(kELFSymbolTableBindingGlobal, kELFSymbolTableTypeNoType),
+            .st_other = kELFSymbolVisibilityDefault,
             .st_shndx = shndx,
             .st_value = st_value,
             .st_size = 0,
@@ -281,8 +268,8 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
     {
         uint32_t sym_idx = 0;
         {
-            size_t n = sym_buf.len / sizeof(Emex64_Sym);
-            Emex64_Sym *syms = (Emex64_Sym *)sym_buf.data;
+            size_t n = sym_buf.len / sizeof(ELF64_Sym);
+            ELF64_Sym *syms = (ELF64_Sym *)sym_buf.data;
             for(size_t s = first_global; s < n; s++)
             {
                 const char *sname = (char*)(strtab_buf.data + syms[s].st_name);
@@ -294,23 +281,23 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
             }
             if(sym_idx == 0)
             {
-                Emex64_Sym usym = {
+                ELF64_Sym usym = {
                     .st_name = (uint32_t)strtab_intern(&strtab_buf, rtbe->name),
-                    .st_info = EMEX64_SYM_INFO(STB_GLOBAL, STT_NOTYPE),
-                    .st_other = STV_DEFAULT,
-                    .st_shndx = SHN_UNDEF,
+                    .st_info = ELF_SYM_INFO(kELFSymbolTableBindingGlobal, kELFSymbolTableTypeNoType),
+                    .st_other = kELFSymbolVisibilityDefault,
+                    .st_shndx = kELFSectionHeaderNumberUndefined,
                     .st_value = 0,
                     .st_size = 0,
                 };
-                sym_idx = (uint32_t)(sym_buf.len / sizeof(Emex64_Sym));
+                sym_idx = (uint32_t)(sym_buf.len / sizeof(ELF64_Sym));
                 buf_append(&sym_buf, &usym, sizeof(usym));
             }
         }
 
         size_t byte_pos = rtbe->byte_pos;
 
-        Emex64_Rela rela = {
-            .r_info = EMEX64_ELF64_R_INFO(sym_idx, R_EMEX64_ABS64),
+        ELF64_Rela rela = {
+            .r_info = ELF64_R_INFO(sym_idx, R_EMEX64_ABS64),
             .r_addend = 0,
         };
 
@@ -341,7 +328,7 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
     uint32_t shname_strtab = (uint32_t)strtab_intern(&shstrtab_buf, ".strtab");
     uint32_t shname_shstrtab = (uint32_t)strtab_intern(&shstrtab_buf, ".shstrtab");
 
-    size_t ehdr_size = sizeof(Emex64_Ehdr);
+    size_t ehdr_size = sizeof(ELF64_Ehdr);
     size_t text_off = ehdr_size;
     size_t data_off = text_off + text_size;
     size_t rela_text_off = data_off + data_size;
@@ -373,22 +360,22 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
 
     /* da header ^~^ */
     /* yeah sowwy for MachO, I use ELF cause it has better documentation :3 */
-    Emex64_Ehdr ehdr;
+    ELF64_Ehdr ehdr;
     memset(&ehdr, 0, sizeof(ehdr));
-    emex64_elf_fill_ident(ehdr.e_ident);
-    ehdr.e_type = ET_REL;
-    ehdr.e_machine = EM_EMEX64;
+    memcpy(ehdr.e_ident, ident, EI_NIDENT);
+    ehdr.e_type = kELFTypeRel;
+    ehdr.e_machine = ELF_MAGIC_EMEX64;
     ehdr.e_version = EV_CURRENT;
     ehdr.e_entry = 0;
     ehdr.e_phoff = 0;
     ehdr.e_shoff = (uint64_t)shdr_off;
     ehdr.e_flags = 0;
-    ehdr.e_ehsize = sizeof(Emex64_Ehdr);
+    ehdr.e_ehsize = sizeof(ELF64_Ehdr);
     ehdr.e_phentsize = 0;
     ehdr.e_phnum = 0;
-    ehdr.e_shentsize = sizeof(Emex64_Shdr);
-    ehdr.e_shnum = SHIDX_COUNT;
-    ehdr.e_shstrndx = SHIDX_SHSTRTAB;
+    ehdr.e_shentsize = sizeof(ELF64_Shdr);
+    ehdr.e_shnum = kELFSectionHeaderIndexCount;
+    ehdr.e_shstrndx = kELFSectionHeaderIndexShstrtab;
     WRITE_BUF(&ehdr, sizeof(ehdr));
 
     /* section data */
@@ -415,84 +402,84 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
     WRITE_BUF(shstrtab_buf.data, shstrtab_buf.len);
 
     /* section headers */
-    Emex64_Shdr shdrs[SHIDX_COUNT];
+    ELF64_Shdr shdrs[kELFSectionHeaderIndexCount];
     memset(shdrs, 0, sizeof(shdrs));
 
-    shdrs[SHIDX_NULL].sh_name = shname_null;
-    shdrs[SHIDX_NULL].sh_type = SHT_NULL;
+    shdrs[kELFSectionHeaderIndexNull].sh_name = shname_null;
+    shdrs[kELFSectionHeaderIndexNull].sh_type = kELFSectionHeaderTypeProgbits;
 
     /* [1] .text */
-    shdrs[SHIDX_TEXT].sh_name = shname_text;
-    shdrs[SHIDX_TEXT].sh_type = SHT_PROGBITS;
-    shdrs[SHIDX_TEXT].sh_flags = SHF_ALLOC | SHF_EXECINSTR;
-    shdrs[SHIDX_TEXT].sh_addr = 0;
-    shdrs[SHIDX_TEXT].sh_offset = (uint64_t)text_off;
-    shdrs[SHIDX_TEXT].sh_size = (uint64_t)text_size;
-    shdrs[SHIDX_TEXT].sh_addralign = 1;
+    shdrs[kELFSectionHeaderIndexText].sh_name = shname_text;
+    shdrs[kELFSectionHeaderIndexText].sh_type = kELFSectionHeaderTypeProgbits;
+    shdrs[kELFSectionHeaderIndexText].sh_flags = kELFSectionFlagAlloc | kELFSectionFlagExec;
+    shdrs[kELFSectionHeaderIndexText].sh_addr = 0;
+    shdrs[kELFSectionHeaderIndexText].sh_offset = (uint64_t)text_off;
+    shdrs[kELFSectionHeaderIndexText].sh_size = (uint64_t)text_size;
+    shdrs[kELFSectionHeaderIndexText].sh_addralign = 1;
 
     /* [2] .data */
-    shdrs[SHIDX_DATA].sh_name = shname_data;
-    shdrs[SHIDX_DATA].sh_type = SHT_PROGBITS;
-    shdrs[SHIDX_DATA].sh_flags = SHF_ALLOC | SHF_WRITE;
-    shdrs[SHIDX_DATA].sh_addr = 0;
-    shdrs[SHIDX_DATA].sh_offset = (uint64_t)data_off;
-    shdrs[SHIDX_DATA].sh_size = (uint64_t)data_size;
-    shdrs[SHIDX_DATA].sh_addralign = 1;
+    shdrs[kELFSectionHeaderIndexData].sh_name = shname_data;
+    shdrs[kELFSectionHeaderIndexData].sh_type = kELFSectionHeaderTypeProgbits;
+    shdrs[kELFSectionHeaderIndexData].sh_flags = kELFSectionFlagAlloc | kELFSectionFlagWrite;
+    shdrs[kELFSectionHeaderIndexData].sh_addr = 0;
+    shdrs[kELFSectionHeaderIndexData].sh_offset = (uint64_t)data_off;
+    shdrs[kELFSectionHeaderIndexData].sh_size = (uint64_t)data_size;
+    shdrs[kELFSectionHeaderIndexData].sh_addralign = 1;
 
     /* [3] .bss */
-    shdrs[SHIDX_BSS].sh_name = shname_bss;
-    shdrs[SHIDX_BSS].sh_type = SHT_NOBITS;
-    shdrs[SHIDX_BSS].sh_flags = SHF_ALLOC | SHF_WRITE;
-    shdrs[SHIDX_BSS].sh_addr = 0;
-    shdrs[SHIDX_BSS].sh_offset = (uint64_t)(data_off + data_size);
-    shdrs[SHIDX_BSS].sh_size = (uint64_t)bss_size;
-    shdrs[SHIDX_BSS].sh_addralign = 1;
+    shdrs[kELFSectionHeaderIndexBSS].sh_name = shname_bss;
+    shdrs[kELFSectionHeaderIndexBSS].sh_type = kELFSectionHeaderTypeNobits;
+    shdrs[kELFSectionHeaderIndexBSS].sh_flags = kELFSectionFlagAlloc | kELFSectionFlagWrite;
+    shdrs[kELFSectionHeaderIndexBSS].sh_addr = 0;
+    shdrs[kELFSectionHeaderIndexBSS].sh_offset = (uint64_t)(data_off + data_size);
+    shdrs[kELFSectionHeaderIndexBSS].sh_size = (uint64_t)bss_size;
+    shdrs[kELFSectionHeaderIndexBSS].sh_addralign = 1;
 
     /* [4] .rela.text */
-    shdrs[SHIDX_RELA_TEXT].sh_name = shname_rela_text;
-    shdrs[SHIDX_RELA_TEXT].sh_type = SHT_RELA;
-    shdrs[SHIDX_RELA_TEXT].sh_flags = SHF_ALLOC;
-    shdrs[SHIDX_RELA_TEXT].sh_offset = (uint64_t)rela_text_off;
-    shdrs[SHIDX_RELA_TEXT].sh_size = (uint64_t)rela_text_buf.len;
-    shdrs[SHIDX_RELA_TEXT].sh_link = SHIDX_SYMTAB;
-    shdrs[SHIDX_RELA_TEXT].sh_info = SHIDX_TEXT;
-    shdrs[SHIDX_RELA_TEXT].sh_addralign = 8;
-    shdrs[SHIDX_RELA_TEXT].sh_entsize = sizeof(Emex64_Rela);
+    shdrs[kELFSectionHeaderIndexRelaText].sh_name = shname_rela_text;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_type = kELFSectionHeaderTypeRelative;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_flags = kELFSectionFlagAlloc;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_offset = (uint64_t)rela_text_off;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_size = (uint64_t)rela_text_buf.len;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_link = kELFSectionHeaderIndexSymtab;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_info = kELFSectionHeaderIndexText;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_addralign = 8;
+    shdrs[kELFSectionHeaderIndexRelaText].sh_entsize = sizeof(ELF64_Rela);
 
     /* [5] .rela.data */
-    shdrs[SHIDX_RELA_DATA].sh_name = shname_rela_data;
-    shdrs[SHIDX_RELA_DATA].sh_type = SHT_RELA;
-    shdrs[SHIDX_RELA_DATA].sh_flags = SHF_ALLOC;
-    shdrs[SHIDX_RELA_DATA].sh_offset = (uint64_t)rela_data_off;
-    shdrs[SHIDX_RELA_DATA].sh_size = (uint64_t)rela_data_buf.len;
-    shdrs[SHIDX_RELA_DATA].sh_link = SHIDX_SYMTAB;
-    shdrs[SHIDX_RELA_DATA].sh_info = SHIDX_DATA;
-    shdrs[SHIDX_RELA_DATA].sh_addralign = 8;
-    shdrs[SHIDX_RELA_DATA].sh_entsize = sizeof(Emex64_Rela);
+    shdrs[kELFSectionHeaderIndexRelaData].sh_name = shname_rela_data;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_type = kELFSectionHeaderTypeRelative;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_flags = kELFSectionFlagAlloc;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_offset = (uint64_t)rela_data_off;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_size = (uint64_t)rela_data_buf.len;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_link = kELFSectionHeaderIndexSymtab;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_info = kELFSectionHeaderIndexData;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_addralign = 8;
+    shdrs[kELFSectionHeaderIndexRelaData].sh_entsize = sizeof(ELF64_Rela);
 
     /* [6] .symtab */
-    shdrs[SHIDX_SYMTAB].sh_name = shname_symtab;
-    shdrs[SHIDX_SYMTAB].sh_type = SHT_SYMTAB;
-    shdrs[SHIDX_SYMTAB].sh_offset = (uint64_t)sym_off;
-    shdrs[SHIDX_SYMTAB].sh_size = (uint64_t)sym_buf.len;
-    shdrs[SHIDX_SYMTAB].sh_link = SHIDX_STRTAB;
-    shdrs[SHIDX_SYMTAB].sh_info = first_global;
-    shdrs[SHIDX_SYMTAB].sh_addralign = 8;
-    shdrs[SHIDX_SYMTAB].sh_entsize = sizeof(Emex64_Sym);
+    shdrs[kELFSectionHeaderIndexSymtab].sh_name = shname_symtab;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_type = kELFSectionHeaderTypeSymtab;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_offset = (uint64_t)sym_off;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_size = (uint64_t)sym_buf.len;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_link = kELFSectionHeaderIndexStrtab;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_info = first_global;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_addralign = 8;
+    shdrs[kELFSectionHeaderIndexSymtab].sh_entsize = sizeof(ELF64_Sym);
 
     /* [7] .strtab */
-    shdrs[SHIDX_STRTAB].sh_name = shname_strtab;
-    shdrs[SHIDX_STRTAB].sh_type = SHT_STRTAB;
-    shdrs[SHIDX_STRTAB].sh_offset = (uint64_t)str_off;
-    shdrs[SHIDX_STRTAB].sh_size = (uint64_t)strtab_buf.len;
-    shdrs[SHIDX_STRTAB].sh_addralign = 1;
+    shdrs[kELFSectionHeaderIndexStrtab].sh_name = shname_strtab;
+    shdrs[kELFSectionHeaderIndexStrtab].sh_type = kELFSectionHeaderTypeStrtab;
+    shdrs[kELFSectionHeaderIndexStrtab].sh_offset = (uint64_t)str_off;
+    shdrs[kELFSectionHeaderIndexStrtab].sh_size = (uint64_t)strtab_buf.len;
+    shdrs[kELFSectionHeaderIndexStrtab].sh_addralign = 1;
 
     /* [8] .shstrtab */
-    shdrs[SHIDX_SHSTRTAB].sh_name = shname_shstrtab;
-    shdrs[SHIDX_SHSTRTAB].sh_type = SHT_STRTAB;
-    shdrs[SHIDX_SHSTRTAB].sh_offset = (uint64_t)shstr_off;
-    shdrs[SHIDX_SHSTRTAB].sh_size = (uint64_t)shstrtab_buf.len;
-    shdrs[SHIDX_SHSTRTAB].sh_addralign = 1;
+    shdrs[kELFSectionHeaderIndexShstrtab].sh_name = shname_shstrtab;
+    shdrs[kELFSectionHeaderIndexShstrtab].sh_type = kELFSectionHeaderTypeStrtab;
+    shdrs[kELFSectionHeaderIndexShstrtab].sh_offset = (uint64_t)shstr_off;
+    shdrs[kELFSectionHeaderIndexShstrtab].sh_size = (uint64_t)shstrtab_buf.len;
+    shdrs[kELFSectionHeaderIndexShstrtab].sh_addralign = 1;
 
     WRITE_BUF(shdrs, sizeof(shdrs));
 

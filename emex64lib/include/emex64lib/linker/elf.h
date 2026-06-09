@@ -40,34 +40,34 @@
 
 #define EV_CURRENT  1
 
-typedef: uint8_t {
+typedef enum: uint8_t {
     kELFTypeNone =  0,
     kELFTypeRel =   1,
     kELFTypeExec =  2,
 } kELFType;
 
-typedef: uint8_t {
+typedef enum: uint8_t {
     kELFSectionHeaderTypeNull =     0,
     kELFSectionHeaderTypeProgbits = 1,
-    kELFSectionHeaderTypeSymtabs =  2,
-    kELFSectionHeaderTypeStrtabs =  3,
+    kELFSectionHeaderTypeSymtab =  2,
+    kELFSectionHeaderTypeStrtab =  3,
     kELFSectionHeaderTypeRelative = 4,
     kELFSectionHeaderTypeNobits =   8,
 } kELFSectionHeaderType;
 
-typedef: uint8_t {
-    kELFSectionFlagTypeWrite =  (1 << 0),
-    kELFSectionFlagTypeAlloc =  (1 << 1),
-    kELFSectionFlagTypeExec =   (1 << 2),
-} kELFSectionFlagType;
+typedef enum: uint8_t {
+    kELFSectionFlagWrite =  (1 << 0),
+    kELFSectionFlagAlloc =  (1 << 1),
+    kELFSectionFlagExec =   (1 << 2),
+} kELFSectionFlag;
 
-typedef: uint8_t {
+typedef enum: uint8_t {
     kELFSymbolTableBindingLocal =   0,
     kELFSymbolTableBindingGlobal =  1,
     kELFSymbolTableBindingWeak =    2,
 } kELFSymbolTableBinding;
 
-typedef: uint8_t {
+typedef enum: uint8_t {
     kELFSymbolTableTypeNoType =     0,
     kELFSymbolTableTypeObject =     1,
     kELFSymbolTableTypeFunc =       2,
@@ -75,15 +75,20 @@ typedef: uint8_t {
     kELFSymbolTableTypeFile =       4,
 } kELFSymbolTableType;
 
-typedef: uint8_t {
+typedef enum: uint8_t {
     kELFSymbolVisibilityDefault =   0,
     kELFSymbolVisibilityInternal =  1,
     kELFSymbolVisibilityHidden =    2,
     kELFSymbolVisibilityProtected = 3,
 } kELFSymbolVisibility;
 
-typedef: uint16_t {
-    kELFSectionHeaderIndexUndefined =   0,
+typedef enum: uint16_t {
+    kELFSectionHeaderNumberUndefined =  0,
+    kELFSectionHeaderNumberAbsolute =   0xFFF1,
+} kELFSectionHeaderNumber;
+
+typedef enum: uint16_t {
+    kELFSectionHeaderIndexNull =        0,
     kELFSectionHeaderIndexText =        1,
     kELFSectionHeaderIndexData =        2,
     kELFSectionHeaderIndexBSS =         3,
@@ -91,14 +96,13 @@ typedef: uint16_t {
     kELFSectionHeaderIndexRelaData =    5,
     kELFSectionHeaderIndexSymtab =      6,
     kELFSectionHeaderIndexStrtab =      7,
-    kELFSectionHeaderIndexSHSTRTAB =    8,
+    kELFSectionHeaderIndexShstrtab =    8,
     kELFSectionHeaderIndexCount =       9,
-    kELFSectionHeaderIndexAbsolute =    0xFFF1,
 } kELFSectionHeaderIndex;
 
 #define R_EMEX64_ABS64  1
 
-#define EI_NIDENT       16
+#define EI_NIDENT   16
 
 typedef struct {
     uint8_t e_ident[EI_NIDENT];
@@ -148,5 +152,9 @@ typedef struct {
 #define ELF32_R_SYM(i) ((i) >> 32)
 #define ELF32_R_TYPE(i) ((i) & 0xFFFFFFFF)
 #define ELF64_R_INFO(s,t) (((uint64_t)(s) << 32) | (uint32_t)(t))
+
+#define ELF_SYM_INFO(bind, type) (((bind) << 4) | ((type) & 0xf))
+
+static uint8_t ident[EI_NIDENT] = { ELF_MAGIC_0, ELF_MAGIC_1, ELF_MAGIC_2, ELF_MAGIC_3, ELF_CLASS64, ELF_DATA2LSB, EV_CURRENT };
 
 #endif /* EMEX64LD_ELF_H */
