@@ -159,33 +159,9 @@ bool assembler_emit_instruction_clr(const opcode_entry_t *opce,
     return true;
 }
 
-static inline enum kEmex64ParameterCoding assembler_choose_best_branch_coding(int64_t offset)
-{
-    if(offset >= -16 && offset <= 15)
-    {
-        return kEmex64ParameterCodingImm5;
-    }
-    if(offset >= -128 && offset <= 127)
-    {
-        return kEmex64ParameterCodingImm8;
-    }
-    else if(offset >= -32768 && offset <= 32767)
-    {
-        return kEmex64ParameterCodingImm16;
-    }
-    else if(offset >= -2147483648LL && offset <= 2147483647LL)
-    {
-        return kEmex64ParameterCodingImm32;
-    }
-    
-    return kEmex64ParameterCodingAddr64;
-}
-
 bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
                                         assembler_line_t *al)
 {
-    uint64_t instruction_base_addr = fdwalker_bytes_used(al->inv->fdwalker);
-
     /*
      * every instruction starts with a
      * opcode. so we emit one.
@@ -232,45 +208,6 @@ bool assembler_emit_instruction_generic(const opcode_entry_t *opce,
             else
             {
                 label = strdup(al->token[i]->str);
-            }
-
-            if(al->inv->options.offset_branch &&
-               (((opce->opcode == kEmex64OpcodeBLW || opce->opcode == kEmex64OpcodeB   || opce->opcode == kEmex64OpcodeBE ||
-                  opce->opcode == kEmex64OpcodeBNE || opce->opcode == kEmex64OpcodeBLE || opce->opcode == kEmex64OpcodeBGE ||
-                  opce->opcode == kEmex64OpcodeBLT || opce->opcode == kEmex64OpcodeBGT || opce->opcode == kEmex64OpcodeBL) && i == 1) ||
-               ((opce->opcode == kEmex64OpcodeBZ   || opce->opcode == kEmex64OpcodeBNZ) && i == 2)))
-            {
-                assembler_label_t *found = assembler_label_lookup(al->inv, label);
-                if(found)
-                {
-                    int64_t diff = found->addr - instruction_base_addr;
-
-                    enum kEmex64ParameterCoding coding = assembler_choose_best_branch_coding(diff);
-
-                    if(coding == kEmex64ParameterCodingImm5  || coding == kEmex64ParameterCodingImm8 ||
-                       coding == kEmex64ParameterCodingImm16 || coding == kEmex64ParameterCodingImm32)
-                    {
-                        switch(coding)
-                        {
-                            case kEmex64ParameterCodingImm5:
-                                assembler_emit_imm5(al->inv, (uint8_t)(diff & 0x1F));
-                                break;
-                            case kEmex64ParameterCodingImm8:
-                                assembler_emit_imm8(al->inv, (uint8_t)diff);
-                                break;
-                            case kEmex64ParameterCodingImm16:
-                                assembler_emit_imm16(al->inv, (uint16_t)diff);
-                                break;
-                            case kEmex64ParameterCodingImm32:
-                                assembler_emit_imm32(al->inv, (uint32_t)diff);
-                                break;
-                            default:
-                                break;
-                        }
-
-                        continue;
-                    }
-                }
             }
 
             fdwalker_write(al->inv->fdwalker, kEmex64ParameterCodingAddr64, 3);
@@ -395,9 +332,6 @@ bool assembler_emit(assembler_invocation_t *inv)
         diag_error(NULL, "fatal error occured, pls report\n");
         return false;
     }
-
-    inv->label[inv->label_cnt].addr = st.st_size;
-    inv->label[inv->label_cnt++].name = strdup("__emex64_exec_img_end");
 
     /* relocate if possible */
     reloc_table_entry_t *rtbe = inv->rtbe;

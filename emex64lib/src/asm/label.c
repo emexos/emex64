@@ -43,7 +43,7 @@ bool assembler_label_prealloc(assembler_invocation_t *inv)
      * __emex64_exec_img_end which is appended in
      * the end of code emitting.
      */
-    inv->label_cnt = 1;
+    inv->label_cnt = 0;
     for(uint64_t i = 0; i < inv->line_cnt; i++)
     {
         if(inv->line[i]->type == kAssemblerLineTypeGlobalLabel ||

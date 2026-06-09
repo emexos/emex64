@@ -267,7 +267,10 @@ static inline uint64_t obj_bss_size(const Obj *o)
 
 static bool obj_register_symbols(Obj *o)
 {
-    if (o->idx_symtab < 0) return true;
+    if(o->idx_symtab < 0)
+    {
+        return true;
+    }
 
     Emex64_Shdr *symsh = &o->shdrs[o->idx_symtab];
     Emex64_Sym  *syms = (Emex64_Sym *)(o->data + symsh->sh_offset);

@@ -237,12 +237,7 @@ bool assembler_elf_emit(assembler_invocation_t *inv)
             continue;
         }
 
-        if(strcmp(lbl->name, "__emex64_exec_img_end") == 0)
-        {
-            continue;
-        }
-
-        uint64_t addr    = lbl->addr;
+        uint64_t addr = lbl->addr;
         uint16_t shndx;
         uint64_t st_value;
 
