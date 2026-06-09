@@ -31,6 +31,8 @@
 
 #include <emex64lib/support/fdwalker.h>
 
+#include <emex64lib/asm/cmptok.h>
+
 enum kAssemblerLineType: uint8_t {
     kAssemblerLineTypeNone,
     kAssemblerLineTypeIgnore,
@@ -47,6 +49,7 @@ typedef struct assembler_token {
     char *str;
     size_t column_num;                      /* start offset of column */
     struct assembler_line *al;              /* pointer back to compiler line */
+    enum kAssemblerTokenType type;          /* OMG THAT IS AI?!?! the token type, WOAHHH AM I A AI, DID A AI GENERATE THIS TOKEN?!??!*/
 } assembler_token_t;
 
 typedef struct assembler_line {

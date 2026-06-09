@@ -46,12 +46,24 @@ enum kCmptokTokenMode: uint8_t {
      * compilation will fail, but thats not responsibility
      * of this parser!
      */
-    kCmptokTokenModeCharacter
+    kCmptokTokenModeCharacter,
+
+    /*
+     * expression mode is for things like (SOME_MACRO + 4 + (NYA + 10))
+     */
+    kCmptokTokenModeExpression,
+};
+
+enum kAssemblerTokenType: uint8_t {
+    kAssemblerTokenTypeInvalid,
+    kAssemblerTokenTypeStandard,
+    kAssemblerTokenTypeStaticExpression,
 };
 
 typedef struct {
-    const char *token;                          /* token that gets returned (is only valid until next cmptok(1) call from the same thread as before */
-    size_t column;                              /* column position */
+    const char *token;
+    size_t column;
+    enum kAssemblerTokenType type;
 } cmptok_token_t;
 
 cmptok_token_t cmptok(const char *token);

@@ -334,6 +334,12 @@ bool assembler_code_preparse(assembler_invocation_t *inv,
             at->str = strdup(token.token);
             at->column_num = token.column + 1;
             at->al = inv->line[i];
+            if(token.type == kAssemblerTokenTypeInvalid)
+            {
+                diag_error(at, "\"%s\" is a invalid token\n", at->str);
+                return false;
+            }
+            at->type = token.type;
             inv->line[i]->token[inv->line[i]->token_cnt++] = at;
             token = cmptok(NULL);
         }

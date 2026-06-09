@@ -85,6 +85,7 @@ cmptok_token_t cmptok(const char *token)
     cmptok_skip_triggers();
 
     cmptok_token_t retval;
+    retval.type = kAssemblerTokenTypeStandard;
     retval.column = column;
 
     /* perform copy */
@@ -108,11 +109,17 @@ cmptok_token_t cmptok(const char *token)
                     /* handling string beginnings */
                     case '"':
                         token_mode = kCmptokTokenModeString;
+                        retval.type = kAssemblerTokenTypeInvalid;
                         break;
                     
                     /* handling character beginnings */
                     case '\'':
                         token_mode = kCmptokTokenModeCharacter;
+                        retval.type = kAssemblerTokenTypeInvalid;
+                        break;
+                    case '(':
+                        token_mode = kCmptokTokenModeExpression;
+                        retval.type = kAssemblerTokenTypeInvalid;
                         break;
                     default:
                         break;
@@ -130,6 +137,7 @@ cmptok_token_t cmptok(const char *token)
                         }
 
                         cmptok_append(&a);
+                        retval.type = kAssemblerTokenTypeStandard;
                         goto break_out;
                     default:
                         break;
@@ -147,6 +155,19 @@ cmptok_token_t cmptok(const char *token)
                         }
                         
                         cmptok_append(&a);
+                        retval.type = kAssemblerTokenTypeStandard;
+                        goto break_out;
+                    default:
+                        break;
+                }
+                break;
+            case kCmptokTokenModeExpression:
+                switch(ltokptr[0])
+                {
+                    /* handling character ends */
+                    case ')':                        
+                        cmptok_append(&a);
+                        retval.type = kAssemblerTokenTypeStaticExpression;
                         goto break_out;
                     default:
                         break;

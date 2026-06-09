@@ -103,7 +103,12 @@ bool assembler_macro_expand(assembler_invocation_t *inv)
         repeat:
             for(uint64_t ami = 0; ami < c; ami++)
             {
-                if(strcmp(inv->line[li]->token[ti]->str, am[ami].match) == 0)
+                if(inv->line[li]->token[ti]->type == kAssemblerTokenTypeStaticExpression)
+                {
+                    diag_error(inv->line[li]->token[ti], "static expressions aren't supported yet!\n");
+                    return false;
+                }
+                else if(strcmp(inv->line[li]->token[ti]->str, am[ami].match) == 0)
                 {
                     uint64_t old_token_cnt = inv->line[li]->token_cnt;
                     uint64_t new_tokens = (am[ami].inject_token_cnt);
